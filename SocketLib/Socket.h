@@ -3,6 +3,7 @@
 #include "SocketHandle.h"
 #include "SocketResult.h"
 #include "IPVersion.h"
+#include "SocketOption.h"
 
 namespace CustomSocket
 {
@@ -19,6 +20,7 @@ namespace CustomSocket
 		SocketHandle getHandle();
 		SocketIPVersion getIPVersion();
 	private:
+		SocketResult setSocketOption(SocketOption option, BOOL value);
 		SocketHandle m_handle = INVALID_SOCKET;
 		SocketIPVersion m_IPVersion = SocketIPVersion::IPv4;
 	};

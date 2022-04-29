@@ -35,6 +35,11 @@ namespace CustomSocket
             return SocketResult::Fail;
         }
 
+        if (setSocketOption(SocketOption::TCP_NoDelay, TRUE) != SocketResult::Success)
+        {
+            return SocketResult::Fail;
+        }
+
         return SocketResult::Success;
     }
 
@@ -66,6 +71,31 @@ namespace CustomSocket
     SocketIPVersion Socket::getIPVersion()
     {
         return m_IPVersion;
+    }
+    
+    SocketResult Socket::setSocketOption(SocketOption option, BOOL value)
+    {
+
+        int result = 0;
+
+        switch (option)
+        {
+        case CustomSocket::TCP_NoDelay:
+            result = setsockopt(m_handle, IPPROTO_TCP, TCP_NODELAY, 
+                                (const char*)& value, sizeof(BOOL));
+            break;
+        default:
+            return SocketResult::Fail;
+        }
+
+        if (result != 0)
+        {
+            WSAGetLastError();
+
+            return SocketResult::Fail;
+        }
+
+        return SocketResult::Success;
     }
 }
 
