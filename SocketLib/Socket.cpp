@@ -19,6 +19,29 @@ namespace CustomSocket
             throw std::exception("Using non implemented socket IP version.");
         }
 
+        Result result = Result::Fail;
+
+        if (m_handle == INVALID_SOCKET)
+        {
+            m_handle = socket(AF_INET,
+                              SOCK_STREAM,
+                              IPPROTO_TCP);
+
+            if (m_handle != INVALID_SOCKET)
+            {
+                result = (setSocketOption(Option::TCP_NoDelay, TRUE) != Result::Success) 
+                    ? Result::Fail : Result::Success;
+            }
+        }
+
+        return result;
+
+        /**
+        if (m_IPVersion != IPVersion::IPv4)
+        {
+            throw std::exception("Using non implemented socket IP version.");
+        }
+
         if (m_handle != INVALID_SOCKET)
         {
             return Result::Fail;
@@ -41,10 +64,30 @@ namespace CustomSocket
         }
 
         return Result::Success;
+        **/
     }
 
     Result Socket::close()
     {
+        Result result = Result::Fail;
+
+        if (m_handle != INVALID_SOCKET)
+        {
+            result = (closesocket(m_handle) != 0) ? Result::Fail : Result::Success;
+
+            if (result != Result::Success)
+            {
+                WSAGetLastError();
+            }
+            else
+            {
+                m_handle = INVALID_SOCKET;
+            }
+        }
+
+        return result;
+
+        /**
         if (m_handle == INVALID_SOCKET)
         {
             return Result::Fail;
@@ -61,6 +104,7 @@ namespace CustomSocket
 
         m_handle = INVALID_SOCKET;
         return Result::Success;
+        **/
     }
 
     SocketHandle Socket::getHandle()
@@ -76,26 +120,26 @@ namespace CustomSocket
     Result Socket::setSocketOption(Option option, BOOL value)
     {
 
-        int result = 0;
+        int code_result = 0;
 
         switch (option)
         {
         case Option::TCP_NoDelay:
-            result = setsockopt(m_handle, IPPROTO_TCP, TCP_NODELAY, 
-                                (const char*)& value, sizeof(BOOL));
+        {
+            code_result = setsockopt(m_handle, IPPROTO_TCP, TCP_NODELAY,
+                (const char*)&value, sizeof(BOOL));
             break;
+        }
         default:
-            return Result::Fail;
+            code_result = -1;
         }
 
-        if (result != 0)
+        if (code_result != 0)
         {
             WSAGetLastError();
-
-            return Result::Fail;
         }
 
-        return Result::Success;
+        return (code_result != 0) ? Result::Fail : Result::Success;
     }
 }
 

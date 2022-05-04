@@ -12,7 +12,14 @@ int main()
 		{
 			std::cout << "The socket was successfully created." << std::endl;
 
-			socket.close();
+			if (socket.close() == CustomSocket::Result::Success)
+			{
+				std::cout << "The socket was successfully closed." << std::endl;
+			}
+			else
+			{
+				std::cout << "Failed to close a socket." << std::endl;
+			}
 		}
 		else
 		{
