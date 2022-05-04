@@ -1,13 +1,6 @@
 #pragma once
 
-//#include "SocketHandle.h"
 #include "ServiceStructs.h"
-
-/**
-#include "SocketResult.h"
-#include "IPVersion.h"
-#include "SocketOption.h"
-**/
 
 namespace CustomSocket
 {
