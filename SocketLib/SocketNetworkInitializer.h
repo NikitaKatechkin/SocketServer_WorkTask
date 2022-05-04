@@ -5,14 +5,9 @@
 
 namespace CustomSocket
 {
-	class NetworkHandler
+	namespace NetworkAPIInitializer
 	{
-	public:
-		NetworkHandler() = default;
-		~NetworkHandler() = default;
-
-		static bool Initialize();
-		static void Shutdown();
-	private:
-	};
+		bool Initialize();
+		void Shutdown();
+	}
 }

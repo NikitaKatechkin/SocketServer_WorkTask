@@ -1,31 +1,38 @@
 #include "SocketNetworkInitializer.h"
 #include <iostream>
 
-bool CustomSocket::NetworkHandler::Initialize()
+namespace CustomSocket
 {
-    WSADATA data;
-
-    int result = WSAStartup(MAKEWORD(2, 2), &data);
-    
-    if (result != 0)
+    namespace NetworkAPIInitializer
     {
-        std::cerr << "Failed to start up the winsock API." << std::endl;
+        bool Initialize()
+        {
+            WSADATA data;
 
-        return false;
+            bool result = !(WSAStartup(MAKEWORD(2, 2), &data));
+
+            if (result == false)
+            {
+                std::cerr << "Failed to start up the winsock API." << std::endl;
+            }
+            else
+            {
+                if ((LOBYTE(data.wVersion) != 2 || HIBYTE(data.wVersion) != 2))
+                {
+                    std::cerr << "Could not find a correct version of the winsock API." << std::endl;
+
+                    result = false;
+                }
+            }
+
+            return result;
+        }
+
+        void Shutdown()
+        {
+            WSACleanup();
+        }
     }
-
-    if (LOBYTE(data.wVersion) != 2 || HIBYTE(data.wVersion) != 2)
-    {
-        std::cerr << "Could not find a correct version of the winsock API." << std::endl;
-
-        return false;
-    }
-
-
-    return true;
 }
 
-void CustomSocket::NetworkHandler::Shutdown()
-{
-    WSACleanup();
-}
+

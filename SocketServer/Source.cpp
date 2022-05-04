@@ -3,7 +3,7 @@
 
 int main()
 {
-	if (CustomSocket::NetworkHandler::Initialize())
+	if (CustomSocket::NetworkAPIInitializer::Initialize())
 	{
 		std::cout << "The winsock API was successfully initialized." << std::endl;
 
@@ -20,7 +20,7 @@ int main()
 		}
 	}
 
-	CustomSocket::NetworkHandler::Shutdown();
+	CustomSocket::NetworkAPIInitializer::Shutdown();
 
 	system("pause");
 	return 0;
