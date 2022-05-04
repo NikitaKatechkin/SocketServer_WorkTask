@@ -3,25 +3,25 @@
 
 namespace CustomSocket
 {
-    Socket::Socket(SocketHandle handle, SocketIPVersion IPVersion):
+    Socket::Socket(SocketHandle handle, IPVersion IPVersion):
         m_handle(handle), m_IPVersion(IPVersion)
     {
-        if (m_IPVersion != SocketIPVersion::IPv4)
+        if (m_IPVersion != IPVersion::IPv4)
         {
             throw std::exception("USing non implemented socket IP version.");
         }
     }
 
-    SocketResult Socket::create()
+    Result Socket::create()
     {
-        if (m_IPVersion != SocketIPVersion::IPv4)
+        if (m_IPVersion != IPVersion::IPv4)
         {
             throw std::exception("Using non implemented socket IP version.");
         }
 
         if (m_handle != INVALID_SOCKET)
         {
-            return SocketResult::Fail;
+            return Result::Fail;
         }
 
         m_handle = socket(AF_INET, 
@@ -32,22 +32,22 @@ namespace CustomSocket
         {
             WSAGetLastError();
 
-            return SocketResult::Fail;
+            return Result::Fail;
         }
 
-        if (setSocketOption(SocketOption::TCP_NoDelay, TRUE) != SocketResult::Success)
+        if (setSocketOption(Option::TCP_NoDelay, TRUE) != Result::Success)
         {
-            return SocketResult::Fail;
+            return Result::Fail;
         }
 
-        return SocketResult::Success;
+        return Result::Success;
     }
 
-    SocketResult Socket::close()
+    Result Socket::close()
     {
         if (m_handle == INVALID_SOCKET)
         {
-            return SocketResult::Fail;
+            return Result::Fail;
         }
 
         int result = closesocket(m_handle);
@@ -56,11 +56,11 @@ namespace CustomSocket
         {
             WSAGetLastError();
 
-            return SocketResult::Fail;
+            return Result::Fail;
         }
 
         m_handle = INVALID_SOCKET;
-        return SocketResult::Success;
+        return Result::Success;
     }
 
     SocketHandle Socket::getHandle()
@@ -68,34 +68,34 @@ namespace CustomSocket
         return m_handle;
     }
 
-    SocketIPVersion Socket::getIPVersion()
+    IPVersion Socket::getIPVersion()
     {
         return m_IPVersion;
     }
     
-    SocketResult Socket::setSocketOption(SocketOption option, BOOL value)
+    Result Socket::setSocketOption(Option option, BOOL value)
     {
 
         int result = 0;
 
         switch (option)
         {
-        case CustomSocket::TCP_NoDelay:
+        case Option::TCP_NoDelay:
             result = setsockopt(m_handle, IPPROTO_TCP, TCP_NODELAY, 
                                 (const char*)& value, sizeof(BOOL));
             break;
         default:
-            return SocketResult::Fail;
+            return Result::Fail;
         }
 
         if (result != 0)
         {
             WSAGetLastError();
 
-            return SocketResult::Fail;
+            return Result::Fail;
         }
 
-        return SocketResult::Success;
+        return Result::Success;
     }
 }
 

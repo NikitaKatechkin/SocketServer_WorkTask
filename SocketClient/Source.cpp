@@ -8,7 +8,7 @@ int main()
 		std::cout << "The winsock API was successfully initialized." << std::endl;
 
 		CustomSocket::Socket socket;
-		if (socket.create() == CustomSocket::SocketResult::Success)
+		if (socket.create() == CustomSocket::Result::Success)
 		{
 			std::cout << "The socket was successfully created." << std::endl;
 

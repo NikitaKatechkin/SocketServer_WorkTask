@@ -2,7 +2,7 @@
 
 namespace CustomSocket
 {
-	enum class SocketResult
+	enum class Result
 	{
 		Success, 
 		Fail,

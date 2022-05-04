@@ -1,4 +1,4 @@
 #pragma once
 
-#include "SocketNetworkInitializer.h"
+#include "NetworkInitializer.h"
 #include "Socket.h"

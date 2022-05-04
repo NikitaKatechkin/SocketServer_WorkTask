@@ -2,7 +2,7 @@
 
 namespace CustomSocket
 {
-	enum SocketOption
+	enum Option
 	{
 		TCP_NoDelay, 
 	};

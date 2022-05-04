@@ -1,9 +1,13 @@
 #pragma once
 
 #include "SocketHandle.h"
+#include "ServiceStructs.h"
+
+/**
 #include "SocketResult.h"
 #include "IPVersion.h"
 #include "SocketOption.h"
+**/
 
 namespace CustomSocket
 {
@@ -11,17 +15,17 @@ namespace CustomSocket
 	{
 	public:
 		Socket(SocketHandle handle = INVALID_SOCKET, 
-			   SocketIPVersion IPVersion = SocketIPVersion::IPv4);
+			   IPVersion IPVersion = IPVersion::IPv4);
 		~Socket() = default;
 
-		SocketResult create();
-		SocketResult close();
+		Result create();
+		Result close();
 
 		SocketHandle getHandle();
-		SocketIPVersion getIPVersion();
+		IPVersion getIPVersion();
 	private:
-		SocketResult setSocketOption(SocketOption option, BOOL value);
+		Result setSocketOption(Option option, BOOL value);
 		SocketHandle m_handle = INVALID_SOCKET;
-		SocketIPVersion m_IPVersion = SocketIPVersion::IPv4;
+		IPVersion m_IPVersion = IPVersion::IPv4;
 	};
 }

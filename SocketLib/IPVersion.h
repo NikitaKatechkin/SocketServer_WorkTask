@@ -2,7 +2,7 @@
 
 namespace CustomSocket
 {
-	enum SocketIPVersion
+	enum IPVersion
 	{
 		IPv4,
 		IPv6
