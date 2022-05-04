@@ -5,5 +5,5 @@
 
 namespace CustomSocket
 {
-	typedef SOCKET SocketHandle;
+	//typedef SOCKET SocketHandle;
 }
