@@ -34,6 +34,8 @@ namespace CustomSocket
 		void setIPVersion(IPVersion ipVersion);
 	private:
 		Result setSocketOption(Option option, BOOL value);
+
+	private:
 		SocketHandle m_handle = INVALID_SOCKET;
 		IPVersion m_IPVersion = IPVersion::IPv4;
 	};
