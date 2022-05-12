@@ -344,6 +344,47 @@ TEST(SocketTestCase, RecieveAllTest)
 	EXPECT_EQ(newConnection.RecieveAll(buffer, 256), CustomSocket::Result::Fail);
 }
 
+TEST(SocketTestCase, GetHandleTest)
+{
+	CustomSocket::Socket socket;
+
+	EXPECT_EQ(socket.getHandle(), INVALID_SOCKET);
+}
+
+TEST(SocketTestCase, GetIPVersionTest)
+{
+	CustomSocket::Socket socket;
+
+	EXPECT_EQ(socket.getIPVersion(), CustomSocket::IPVersion::IPv4);
+}
+
+TEST(SocketTestCase, SetHandleTest)
+{
+	EXPECT_EQ(CustomSocket::NetworkAPIInitializer::Initialize(), true);
+	
+	CustomSocket::Socket socket;
+	EXPECT_EQ(socket.getHandle(), INVALID_SOCKET);
+
+	CustomSocket::Socket socket_2;
+	socket_2.create();
+
+	socket.setHandle(socket_2.getHandle());
+	EXPECT_EQ(socket.getHandle(), socket_2.getHandle());
+
+	socket_2.close();
+
+	CustomSocket::NetworkAPIInitializer::Shutdown();
+}
+
+TEST(SocketTestCase, SetIPVersionTest)
+{
+	CustomSocket::Socket socket;
+	EXPECT_EQ(socket.getIPVersion(), CustomSocket::IPVersion::IPv4);
+
+	socket.setIPVersion(CustomSocket::IPVersion::Unknown);
+	EXPECT_EQ(socket.getIPVersion(), CustomSocket::IPVersion::Unknown);
+}
+
 int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);
