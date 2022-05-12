@@ -43,6 +43,21 @@ int main()
 				CustomSocket::Socket newConnection;
 				if (socket.Accept(newConnection) == CustomSocket::Result::Success)
 				{
+					char buffer[256];
+					int bytesRecieved = 0;
+
+					CustomSocket::Result result = CustomSocket::Result::Fail;
+					while (result != CustomSocket::Result::Success)
+					{
+						result = newConnection.Recieve(buffer, 256, bytesRecieved);
+
+						if (result == CustomSocket::Result::Success)
+						{
+							std::cout << "[CLIENT]: " << buffer << std::endl;
+							break;
+						}
+					}
+
 					newConnection.close();
 				}
 				else

@@ -21,8 +21,14 @@ namespace CustomSocket
 		Result Accept(Socket& outSocket);
 		Result Connect(IPEndpoint endpoint);
 
+		Result Send(void* data, int numberOfBytes, int& bytesSent);
+		Result Recieve(void* destination, int numberOfBytes, int& bytesRecieved);
+
 		SocketHandle getHandle();
 		IPVersion getIPVersion();
+
+		void setHandle(SocketHandle handle);
+		void setIPVersion(IPVersion ipVersion);
 	private:
 		Result setSocketOption(Option option, BOOL value);
 		SocketHandle m_handle = INVALID_SOCKET;

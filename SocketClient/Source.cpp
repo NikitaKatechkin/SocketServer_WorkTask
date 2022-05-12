@@ -1,5 +1,6 @@
 #include <SocketLib/IncludeMe.h>
 #include <iostream>
+#include <thread>
 
 int main()
 {
@@ -16,6 +17,29 @@ int main()
 				== CustomSocket::Result::Success)
 			{
 				std::cout << "Succesfully connected to server." << std::endl;
+
+				char buffer[256];
+				strcpy_s(buffer, "Hello world from client)))\0");
+
+				int bytesSent = 0;
+				CustomSocket::Result sendFlag = CustomSocket::Result::Fail;
+
+				while (sendFlag == CustomSocket::Result::Fail)
+				{
+					std::cout << "[SERVICE INFO]: ";
+					std::cout << "Attempting to send data to server..." << std::endl;
+					sendFlag = socket.Send(buffer, 256, bytesSent);
+
+					if (sendFlag != CustomSocket::Result::Success)
+					{
+						std::this_thread::sleep_for(std::chrono::milliseconds(500));
+					}
+					else
+					{
+						std::cout << "[SERVICE INFO]: ";
+						std::cout << "Data were successfully sent." << std::endl;
+					}
+				}
 			}
 			else
 			{
