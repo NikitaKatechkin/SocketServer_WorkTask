@@ -21,14 +21,15 @@ int main()
 				char buffer[256];
 				strcpy_s(buffer, "Hello world from client)))\0");
 
-				int bytesSent = 0;
+				//int bytesSent = 0;
 				CustomSocket::Result sendFlag = CustomSocket::Result::Fail;
 
 				while (sendFlag == CustomSocket::Result::Fail)
 				{
 					std::cout << "[SERVICE INFO]: ";
 					std::cout << "Attempting to send data to server..." << std::endl;
-					sendFlag = socket.Send(buffer, 256, bytesSent);
+					//sendFlag = socket.Send(buffer, 256, bytesSent);
+					sendFlag = socket.SendAll(buffer, 256);
 
 					if (sendFlag != CustomSocket::Result::Success)
 					{

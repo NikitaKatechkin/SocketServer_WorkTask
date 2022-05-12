@@ -168,8 +168,18 @@ namespace CustomSocket
         Result result = (bytesSent == SOCKET_ERROR) ? Result::Fail : Result::Success;
         if (result != Result::Success)
         {
-            WSAGetLastError();
+            std::cerr << "[Socket::Send()] " << "ERROR: ";
+            std::cerr << "Failed to send data from a socket ";
+            std::cerr << "with GLE = " << WSAGetLastError() << std::endl;
         }
+
+        /**
+        if (numberOfBytes != bytesSent)
+        {
+            std::cout << "[SERVICE INFO]:";
+            std::cout << "Data was corrupted or partly sent." << std::endl;
+        }
+        **/
 
         return result;
     }
@@ -181,16 +191,74 @@ namespace CustomSocket
         Result result = Result::Fail;
         if (bytesRecieved == SOCKET_ERROR)
         {
-            WSAGetLastError();
+            std::cerr << "[Socket::Send()] " << "ERROR: ";
+            std::cerr << "Failed to recieve data on a socket ";
+            std::cerr << "with GLE = " << WSAGetLastError() << std::endl;
+
             result = Result::Fail;
         }
         else if (bytesRecieved == 0)
         {
             result = Result::Fail;
         }
+        /**
+        else if (numberOfBytes != bytesRecieved)
+        {
+            std::cout << "[SERVICE INFO]:";
+            std::cout << "Data was corrupted or partly recieved." << std::endl;
+        }
+        **/
         else
         {
             result = Result::Success;
+        }
+
+        return result;
+    }
+
+    Result Socket::SendAll(void* data, int numberOfBytes)
+    {
+        int totalBytesSent = 0;
+        Result result = Result::Success;
+
+        while (totalBytesSent < numberOfBytes)
+        {
+            int bytesRemaining = numberOfBytes - totalBytesSent;
+            int bytesSent = 0;
+            
+            result = Send(reinterpret_cast<char*>(data) + totalBytesSent, 
+                          bytesRemaining, 
+                          bytesSent);
+            if (result == Result::Fail)
+            {
+                break;
+            }
+
+            totalBytesSent += bytesSent;
+        }
+
+        return result;
+    }
+
+    Result Socket::RecieveAll(void* data, int numberOfBytes)
+    {
+        int totalBytesRecieved = 0;
+        Result result = Result::Success;
+
+        while (totalBytesRecieved < numberOfBytes)
+        {
+            int bytesRemaining = numberOfBytes - totalBytesRecieved;
+            int bytesRecieved = 0;
+
+            result = Recieve(reinterpret_cast<char*>(data) + totalBytesRecieved,
+                bytesRemaining,
+                bytesRecieved);
+            if (result == Result::Fail)
+            {
+                break;
+            }
+
+            totalBytesRecieved += bytesRecieved;
         }
 
         return result;

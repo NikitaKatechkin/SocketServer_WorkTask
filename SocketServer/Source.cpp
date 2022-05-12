@@ -44,12 +44,13 @@ int main()
 				if (socket.Accept(newConnection) == CustomSocket::Result::Success)
 				{
 					char buffer[256];
-					int bytesRecieved = 0;
+					//int bytesRecieved = 0;
 
 					CustomSocket::Result result = CustomSocket::Result::Fail;
 					while (result != CustomSocket::Result::Success)
 					{
-						result = newConnection.Recieve(buffer, 256, bytesRecieved);
+						//result = newConnection.Recieve(buffer, 256, bytesRecieved);
+						result = newConnection.RecieveAll(buffer, 256);
 
 						if (result == CustomSocket::Result::Success)
 						{

@@ -24,6 +24,9 @@ namespace CustomSocket
 		Result Send(void* data, int numberOfBytes, int& bytesSent);
 		Result Recieve(void* destination, int numberOfBytes, int& bytesRecieved);
 
+		Result SendAll(void* data, int numberOfBytes);
+		Result RecieveAll(void* data, int numberOfBytes);
+
 		SocketHandle getHandle();
 		IPVersion getIPVersion();
 
