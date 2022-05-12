@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ServiceStructs.h"
+#include "IPEndpoint.h"
 
 namespace CustomSocket
 {
@@ -13,6 +14,12 @@ namespace CustomSocket
 
 		Result create();
 		Result close();
+
+		Result Bind(IPEndpoint endpooint);
+		Result Listen(IPEndpoint endpoint, int backlog = 5);
+
+		Result Accept(Socket& outSocket);
+		Result Connect(IPEndpoint endpoint);
 
 		SocketHandle getHandle();
 		IPVersion getIPVersion();

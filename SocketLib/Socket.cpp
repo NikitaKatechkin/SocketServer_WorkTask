@@ -107,6 +107,79 @@ namespace CustomSocket
         **/
     }
 
+    Result Socket::Bind(IPEndpoint endpoint)
+    {
+        sockaddr_in addr = endpoint.GetSockaddrIPv4();
+        int result = bind(m_handle, reinterpret_cast<sockaddr*>(&addr), sizeof(sockaddr_in));
+
+        if (result != 0)
+        {
+            WSAGetLastError();
+        }
+
+        return result == 0 ? Result::Success : Result::Fail;
+    }
+
+    Result Socket::Listen(IPEndpoint endpoint, int backlog)
+    {
+        Result result = Bind(endpoint);
+
+        if (result == Result::Success)
+        {
+            if (listen(m_handle, backlog) != 0)
+            {
+                WSAGetLastError();
+                result = Result::Fail;
+            }
+        }
+
+        return result;
+    }
+
+    Result Socket::Accept(Socket& outSocket)
+    {
+        sockaddr_in addr = {};
+        int addr_len = sizeof(sockaddr_in);
+        //sizeof
+        SocketHandle acceptedConnectionHandle = accept(m_handle, 
+                                                       reinterpret_cast<sockaddr*>(&addr), 
+                                                       &addr_len); //Blocking Func
+
+        Result result = (acceptedConnectionHandle == INVALID_SOCKET) ? Result::Fail : Result::Success;
+
+        if (result == Result::Fail)
+        {
+            WSAGetLastError();
+        }
+        else
+        {
+            outSocket = Socket(acceptedConnectionHandle, IPVersion::IPv4); // Replace to setters
+
+            IPEndpoint newConnectionEndpoint(reinterpret_cast<sockaddr*>(&addr));
+
+            std::cout << "New connection accepted." << std::endl;
+            std::cout << newConnectionEndpoint;
+        }
+        
+
+        return result;
+    }
+
+    Result Socket::Connect(IPEndpoint endpoint)
+    {
+        sockaddr_in addr = endpoint.GetSockaddrIPv4();
+        Result result = (connect(m_handle, 
+                                 reinterpret_cast<sockaddr*>(&addr), sizeof(sockaddr_in)) == 0) ? 
+                                                                    Result::Success : Result::Fail;
+
+        if (result != Result::Success)
+        {
+            WSAGetLastError();
+        }
+
+        return result;
+    }
+
     SocketHandle Socket::getHandle()
     {
         return m_handle;

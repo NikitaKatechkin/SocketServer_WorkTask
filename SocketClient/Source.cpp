@@ -12,6 +12,16 @@ int main()
 		{
 			std::cout << "The socket was successfully created." << std::endl;
 
+			if (socket.Connect(CustomSocket::IPEndpoint("127.0.0.1", 4790))
+				== CustomSocket::Result::Success)
+			{
+				std::cout << "Succesfully connected to server." << std::endl;
+			}
+			else
+			{
+				std::cerr << "Failed to connect to server." << std::endl;
+			}
+
 			socket.close();
 		}
 		else
