@@ -41,6 +41,19 @@ int main()
 						std::cout << "Data were successfully sent." << std::endl;
 					}
 				}
+
+				CustomSocket::Result result = CustomSocket::Result::Fail;
+				while (result != CustomSocket::Result::Success)
+				{
+					//result = newConnection.Recieve(buffer, 256, bytesRecieved);
+					result = socket.Recieve(buffer, 256);
+
+					if (result == CustomSocket::Result::Success)
+					{
+						std::cout << "[SERVER]: " << buffer << std::endl;
+						break;
+					}
+				}
 			}
 			else
 			{

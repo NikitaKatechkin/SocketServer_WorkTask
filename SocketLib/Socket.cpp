@@ -110,7 +110,7 @@ namespace CustomSocket
         return result;
     }
 
-    Result Socket::Accept(Socket& outSocket)
+    Result Socket::Accept(Socket& outSocket, IPEndpoint* outEndpoint)
     {
         sockaddr_in addr = {};
         int addr_len = sizeof(sockaddr_in);
@@ -132,6 +132,12 @@ namespace CustomSocket
             //outSocket = Socket(acceptedConnectionHandle, IPVersion::IPv4); // Replace to setters
             outSocket.setHandle(acceptedConnectionHandle);
             outSocket.setIPVersion(IPVersion::IPv4);
+
+            if (outEndpoint != nullptr)
+            {
+                *outEndpoint = IPEndpoint(reinterpret_cast<sockaddr*>(&addr));
+
+            }
 
             /**
             IPEndpoint newConnectionEndpoint(reinterpret_cast<sockaddr*>(&addr));

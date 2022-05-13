@@ -18,7 +18,7 @@ namespace CustomSocket
 		Result Bind(IPEndpoint endpooint); //May be private
 		Result Listen(IPEndpoint endpoint, int backlog = 5);
 
-		Result Accept(Socket& outSocket);
+		Result Accept(Socket& outSocket, IPEndpoint* outEndpoint = nullptr);
 		Result Connect(IPEndpoint endpoint);
 
 		//Check if nullptr in data or negative numOfBytes TO-DO

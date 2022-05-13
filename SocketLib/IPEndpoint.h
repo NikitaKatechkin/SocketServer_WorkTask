@@ -11,6 +11,7 @@ namespace CustomSocket
 	class IPEndpoint
 	{
 	public:
+		IPEndpoint() = default;
 		IPEndpoint(const std::string& ip, uint16_t port);
 		IPEndpoint(sockaddr* addr);
 		~IPEndpoint() = default;

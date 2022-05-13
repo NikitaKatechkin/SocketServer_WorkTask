@@ -72,18 +72,55 @@ int main()
 	const CustomSocket::IPEndpoint IPSettings("127.0.0.1", 4790);
 	const uint16_t bufferSize = 256;
 
+	const char message[bufferSize] = "Hello, world)))\0";
+	//strcpy_s(message, "Hello, world)))\0");
+
+
 	SocketServer server(IPSettings);
 
 	server.run();
 
-	CustomSocket::Socket connection;
-	server.extractConnection(connection);
-
-	char recieveBuffer[bufferSize];
-	if (connection.Recieve(recieveBuffer, bufferSize) 
-		== CustomSocket::Result::Success)
+	while (server.getNumOfClients() < 3)
 	{
-		std::cout << "[CLIENT]: " << recieveBuffer << std::endl;
+		std::this_thread::sleep_for(std::chrono::microseconds(1500));
+	}
+
+	size_t numOfClients = 0;
+	uint16_t* ports = server.getClientsPortList(numOfClients);
+
+	if (ports != nullptr)
+	{
+		for (size_t index = 0; index < numOfClients; index++)
+		{
+			char recieveBuffer[bufferSize];
+			CustomSocket::Result result = server.recieve(recieveBuffer, 
+													    bufferSize, 
+														 ports[index]);
+
+			if (result == CustomSocket::Result::Success)
+			{
+				std::cout << "[CLIENT]: " << recieveBuffer << std::endl;
+			}
+			else
+			{
+				std::cout << "[CLIENT]: " << "{ERROR WHILE RECIEVING MESSAGE}" << std::endl;
+			}
+
+			result = server.send(message, bufferSize, ports[index]);
+
+			if (result == CustomSocket::Result::Success)
+			{
+				std::cout << "[SERVICE INFO]: " << "{ SENT MESSAGE = " << message;
+				std::cout << " } { NUMBER OF BYTES = " << static_cast<int>(bufferSize);
+				std::cout << " }" << std::endl;
+			}
+			else
+			{
+				std::cout << "[CLIENT]: " << "{ERROR WHILE SENDING MESSAGE}" << std::endl;
+			}
+
+			server.disconnect(ports[index]);
+		}
 	}
 
 	server.stop();
