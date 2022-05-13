@@ -24,9 +24,7 @@ public:
 							  const uint16_t numberOfBytes,
 							  const uint16_t port);
 
-	//CustomSocket::Result extractConnection(CustomSocket::Socket& outSocket);
 	uint16_t* getClientsPortList(size_t& numOfClients);
-	bool hasConnectedClients();
 	size_t getNumOfClients();
 private:
 	void listenLoop();

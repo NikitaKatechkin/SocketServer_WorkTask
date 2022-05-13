@@ -150,7 +150,9 @@ CustomSocket::Result SocketServer::recieve(void* destination,
 	return result;
 }
 
-CustomSocket::Result SocketServer::send(const void* data, const uint16_t numberOfBytes, const uint16_t port)
+CustomSocket::Result SocketServer::send(const void* data, 
+										const uint16_t numberOfBytes, 
+										const uint16_t port)
 {
 	CustomSocket::Result result = (data == nullptr) ? CustomSocket::Result::Fail :
 		CustomSocket::Result::Success;
@@ -216,11 +218,6 @@ uint16_t* SocketServer::getClientsPortList(size_t& numOfClients)
 	}
 
 	return l_buffer;
-}
-
-bool SocketServer::hasConnectedClients()
-{
-	return !(m_connection.empty());
 }
 
 size_t SocketServer::getNumOfClients()
