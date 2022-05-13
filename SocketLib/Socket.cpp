@@ -133,10 +133,12 @@ namespace CustomSocket
             outSocket.setHandle(acceptedConnectionHandle);
             outSocket.setIPVersion(IPVersion::IPv4);
 
+            /**
             IPEndpoint newConnectionEndpoint(reinterpret_cast<sockaddr*>(&addr));
 
             std::cout << "New connection accepted." << std::endl;
             std::cout << newConnectionEndpoint;
+            **/
         }
         
 
@@ -161,7 +163,7 @@ namespace CustomSocket
         return result;
     }
 
-    Result Socket::Send(const void* data, const int numberOfBytes, int& bytesSent)
+    Result Socket::ServiceSend(const void* data, const int numberOfBytes, int& bytesSent)
     {
         //bytesSent = send(m_handle, reinterpret_cast<const char*>(data), numberOfBytes, NULL);
         bytesSent = send(m_handle, static_cast<const char*>(data), numberOfBytes, NULL);
@@ -185,7 +187,7 @@ namespace CustomSocket
         return result;
     }
 
-    Result Socket::Recieve(void* destination, int numberOfBytes, int& bytesRecieved)
+    Result Socket::ServiceRecieve(void* destination, int numberOfBytes, int& bytesRecieved)
     {
         bytesRecieved = recv(m_handle, static_cast<char*>(destination), numberOfBytes, NULL);
 
@@ -217,7 +219,7 @@ namespace CustomSocket
         return result;
     }
 
-    Result Socket::SendAll(const void* data, int numberOfBytes)
+    Result Socket::Send(const void* data, int numberOfBytes)
     {
         int totalBytesSent = 0;
         Result result = Result::Success;
@@ -227,7 +229,7 @@ namespace CustomSocket
             int bytesRemaining = numberOfBytes - totalBytesSent;
             int bytesSent = 0;
             
-            result = Send(static_cast<const char*>(data) + totalBytesSent, 
+            result = ServiceSend(static_cast<const char*>(data) + totalBytesSent, 
                           bytesRemaining, 
                           bytesSent);
             if (result == Result::Fail)
@@ -241,7 +243,7 @@ namespace CustomSocket
         return result;
     }
 
-    Result Socket::RecieveAll(void* data, int numberOfBytes)
+    Result Socket::Recieve(void* data, int numberOfBytes)
     {
         int totalBytesRecieved = 0;
         Result result = Result::Success;
@@ -251,7 +253,7 @@ namespace CustomSocket
             int bytesRemaining = numberOfBytes - totalBytesRecieved;
             int bytesRecieved = 0;
 
-            result = Recieve(reinterpret_cast<char*>(data) + totalBytesRecieved,
+            result = ServiceRecieve(reinterpret_cast<char*>(data) + totalBytesRecieved,
                 bytesRemaining,
                 bytesRecieved);
             if (result == Result::Fail)

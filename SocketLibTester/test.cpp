@@ -16,6 +16,7 @@ void newThreadCSConnection(CustomSocket::Socket& socket, CustomSocket::IPEndpoin
 	EXPECT_EQ(socket.Connect(ip_info), CustomSocket::Result::Success);
 }
 
+/**
 void newThreadCSSend(CustomSocket::Socket& socket)
 {
 	char buffer[256];
@@ -25,13 +26,14 @@ void newThreadCSSend(CustomSocket::Socket& socket)
 	EXPECT_EQ(socket.Send(buffer, 256, bytesSend), CustomSocket::Result::Success);
 	EXPECT_EQ(bytesSend, 256);
 }
+**/
 
 void newThreadCSSendAll(CustomSocket::Socket& socket)
 {
 	char buffer[256];
 	strcpy_s(buffer, "Hello, world)\0");
 
-	EXPECT_EQ(socket.SendAll(buffer, 256), CustomSocket::Result::Success);
+	EXPECT_EQ(socket.Send(buffer, 256), CustomSocket::Result::Success);
 }
 
 TEST(SocketTestCase, ConstructorTest) 
@@ -198,6 +200,7 @@ TEST(SocketTestCase, ConnectTest)
 	EXPECT_EQ(socket_connect.Connect(ip_info), CustomSocket::Result::Fail);
 }
 
+/**
 TEST(SocketTestCase, SendTest)
 {
 	EXPECT_EQ(CustomSocket::NetworkAPIInitializer::Initialize(), true);
@@ -272,6 +275,7 @@ TEST(SocketTestCase, RecieveTest)
 	bytesRecieved = 0;
 	EXPECT_EQ(newConnection.Recieve(buffer, 256, bytesRecieved), CustomSocket::Result::Fail);
 }
+**/
 
 TEST(SocketTestCase, SendAllTest)
 {
@@ -305,7 +309,7 @@ TEST(SocketTestCase, SendAllTest)
 	char buffer[256];
 	strcpy_s(buffer, "Hello, world)\0");
 
-	EXPECT_EQ(socket_connect.SendAll(buffer, 256), CustomSocket::Result::Fail);
+	EXPECT_EQ(socket_connect.Send(buffer, 256), CustomSocket::Result::Fail);
 }
 
 TEST(SocketTestCase, RecieveAllTest)
@@ -330,10 +334,10 @@ TEST(SocketTestCase, RecieveAllTest)
 
 	ConnectThread.join();
 
-	ConnectThread = std::thread(newThreadCSSend, std::ref(socket_connect));
+	ConnectThread = std::thread(newThreadCSSendAll, std::ref(socket_connect));
 
 	char buffer[256];
-	EXPECT_EQ(newConnection.RecieveAll(buffer, 256), CustomSocket::Result::Success);
+	EXPECT_EQ(newConnection.Recieve(buffer, 256), CustomSocket::Result::Success);
 
 	ConnectThread.join();
 
@@ -341,7 +345,7 @@ TEST(SocketTestCase, RecieveAllTest)
 
 	CustomSocket::NetworkAPIInitializer::Shutdown();
 
-	EXPECT_EQ(newConnection.RecieveAll(buffer, 256), CustomSocket::Result::Fail);
+	EXPECT_EQ(newConnection.Recieve(buffer, 256), CustomSocket::Result::Fail);
 }
 
 TEST(SocketTestCase, GetHandleTest)

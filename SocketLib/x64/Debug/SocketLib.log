@@ -1,4 +1,4 @@
-﻿  Socket.cpp
-  IPEndpoint.cpp
+﻿  IPEndpoint.cpp
+  Socket.cpp
   NetworkInitializer.cpp
   SocketLib.vcxproj -> C:\Users\nikita.katechkin\source\repos\SocketServer\x64\Debug\SocketLib.lib

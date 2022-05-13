@@ -29,7 +29,7 @@ int main()
 					std::cout << "[SERVICE INFO]: ";
 					std::cout << "Attempting to send data to server..." << std::endl;
 					//sendFlag = socket.Send(buffer, 256, bytesSent);
-					sendFlag = socket.SendAll(buffer, 256);
+					sendFlag = socket.Send(buffer, 256);
 
 					if (sendFlag != CustomSocket::Result::Success)
 					{

@@ -10,7 +10,7 @@ namespace CustomSocket
 	public:
 		Socket(SocketHandle handle = INVALID_SOCKET, 
 			   IPVersion IPVersion = IPVersion::IPv4);
-		~Socket() = default;
+		virtual ~Socket() = default;
 
 		Result create();
 		Result close();
@@ -24,21 +24,21 @@ namespace CustomSocket
 		//Check if nullptr in data or negative numOfBytes TO-DO
 		//uint16_t to NumOfBytes
 
-		Result Send(const void* data, const int numberOfBytes, int& bytesSent); // should be private
-		Result Recieve(void* destination, int numberOfBytes, int& bytesRecieved); // should be private
-
-		Result SendAll(const void* data, int numberOfBytes);
-		Result RecieveAll(void* data, int numberOfBytes);
+		Result Send(const void* data, int numberOfBytes);
+		Result Recieve(void* data, int numberOfBytes);
 
 		SocketHandle getHandle();
 		IPVersion getIPVersion();
 
 		void setHandle(SocketHandle handle);
 		void setIPVersion(IPVersion ipVersion);
-	private:
+	protected:
+		Result ServiceSend(const void* data, const int numberOfBytes, int& bytesSent); // should be private
+		Result ServiceRecieve(void* destination, int numberOfBytes, int& bytesRecieved); // should be private
+
 		Result setSocketOption(Option option, BOOL value);
 
-	private:
+	protected:
 		SocketHandle m_handle = INVALID_SOCKET;
 		IPVersion m_IPVersion = IPVersion::IPv4;
 	};

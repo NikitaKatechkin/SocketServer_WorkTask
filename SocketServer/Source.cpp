@@ -1,34 +1,13 @@
-#include <SocketLib/IncludeMe.h>
+//#include <SocketLib/IncludeMe.h>
+#include <SocketServer/SocketServer.h>
 #include <iostream>
 
 int main()
 {
+	/**
 	if (CustomSocket::NetworkAPIInitializer::Initialize())
 	{
 		std::cout << "The winsock API was successfully initialized." << std::endl;
-
-		/**
-		CustomSocket::IPEndpoint test_ipe("www.vk.com", 8080);
-		if (test_ipe.GetIPVersion() == CustomSocket::IPVersion::IPv4)
-		{
-			std::cout << "--------------------------------------------------" << std::endl;
-			std::cout << "~~~~~~~~~~~~~~~IPEndpoint class log~~~~~~~~~~~~~~~" << std::endl;
-			std::cout << "Hostname: " << test_ipe.GetHostname() << std::endl;
-			std::cout << "IP: " << test_ipe.GetIPString() << std::endl;
-			std::cout << "Port: " << test_ipe.GetPort() << std::endl;
-			std::cout << "IP Bytes... " << std::endl;
-			for (auto& digit : test_ipe.GetIPBytes())
-			{
-				std::cout << "\t" << static_cast<int>(digit) << std::endl;
-			}
-			std::cout << "~~~~~~~~~~~~~~~IPEndpoint class log~~~~~~~~~~~~~~~" << std::endl;
-			std::cout << "--------------------------------------------------" << std::endl;
-		}
-		else
-		{
-			std::cerr << "Provided string is not an IPv4 address" << std::endl;
-		}
-		**/
 
 		CustomSocket::Socket socket;
 		if (socket.create() == CustomSocket::Result::Success)
@@ -50,7 +29,7 @@ int main()
 					while (result != CustomSocket::Result::Success)
 					{
 						//result = newConnection.Recieve(buffer, 256, bytesRecieved);
-						result = newConnection.RecieveAll(buffer, 256);
+						result = newConnection.Recieve(buffer, 256);
 
 						if (result == CustomSocket::Result::Success)
 						{
@@ -87,6 +66,27 @@ int main()
 	}
 
 	CustomSocket::NetworkAPIInitializer::Shutdown();
+	**/
+
+	
+	const CustomSocket::IPEndpoint IPSettings("127.0.0.1", 4790);
+	const uint16_t bufferSize = 256;
+
+	SocketServer server(IPSettings);
+
+	server.run();
+
+	CustomSocket::Socket connection;
+	server.extractConnection(connection);
+
+	char recieveBuffer[bufferSize];
+	if (connection.Recieve(recieveBuffer, bufferSize) 
+		== CustomSocket::Result::Success)
+	{
+		std::cout << "[CLIENT]: " << recieveBuffer << std::endl;
+	}
+
+	server.stop();
 
 	system("pause");
 	return 0;
