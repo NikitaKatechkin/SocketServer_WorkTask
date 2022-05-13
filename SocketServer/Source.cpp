@@ -35,7 +35,7 @@ int main()
 		{
 			std::cout << "The socket was successfully created." << std::endl;
 
-			if (socket.Listen(CustomSocket::IPEndpoint("0.0.0.0", 4790))
+			if (socket.Listen(CustomSocket::IPEndpoint("127.0.0.1", 4790))
 				== CustomSocket::Result::Success)
 			{
 				std::cout << "Socket successfully listening on port 4790." << std::endl;

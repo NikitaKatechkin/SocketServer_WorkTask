@@ -15,16 +15,19 @@ namespace CustomSocket
 		Result create();
 		Result close();
 
-		Result Bind(IPEndpoint endpooint);
+		Result Bind(IPEndpoint endpooint); //May be private
 		Result Listen(IPEndpoint endpoint, int backlog = 5);
 
 		Result Accept(Socket& outSocket);
 		Result Connect(IPEndpoint endpoint);
 
-		Result Send(void* data, int numberOfBytes, int& bytesSent);
-		Result Recieve(void* destination, int numberOfBytes, int& bytesRecieved);
+		//Check if nullptr in data or negative numOfBytes TO-DO
+		//uint16_t to NumOfBytes
 
-		Result SendAll(void* data, int numberOfBytes);
+		Result Send(const void* data, const int numberOfBytes, int& bytesSent); // should be private
+		Result Recieve(void* destination, int numberOfBytes, int& bytesRecieved); // should be private
+
+		Result SendAll(const void* data, int numberOfBytes);
 		Result RecieveAll(void* data, int numberOfBytes);
 
 		SocketHandle getHandle();

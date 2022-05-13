@@ -161,9 +161,10 @@ namespace CustomSocket
         return result;
     }
 
-    Result Socket::Send(void* data, int numberOfBytes, int& bytesSent)
+    Result Socket::Send(const void* data, const int numberOfBytes, int& bytesSent)
     {
-        bytesSent = send(m_handle, reinterpret_cast<const char*>(data), numberOfBytes, NULL);
+        //bytesSent = send(m_handle, reinterpret_cast<const char*>(data), numberOfBytes, NULL);
+        bytesSent = send(m_handle, static_cast<const char*>(data), numberOfBytes, NULL);
 
         Result result = (bytesSent == SOCKET_ERROR) ? Result::Fail : Result::Success;
         if (result != Result::Success)
@@ -186,7 +187,7 @@ namespace CustomSocket
 
     Result Socket::Recieve(void* destination, int numberOfBytes, int& bytesRecieved)
     {
-        bytesRecieved = recv(m_handle, reinterpret_cast<char*>(destination), numberOfBytes, NULL);
+        bytesRecieved = recv(m_handle, static_cast<char*>(destination), numberOfBytes, NULL);
 
         Result result = Result::Fail;
         if (bytesRecieved == SOCKET_ERROR)
@@ -216,7 +217,7 @@ namespace CustomSocket
         return result;
     }
 
-    Result Socket::SendAll(void* data, int numberOfBytes)
+    Result Socket::SendAll(const void* data, int numberOfBytes)
     {
         int totalBytesSent = 0;
         Result result = Result::Success;
@@ -226,7 +227,7 @@ namespace CustomSocket
             int bytesRemaining = numberOfBytes - totalBytesSent;
             int bytesSent = 0;
             
-            result = Send(reinterpret_cast<char*>(data) + totalBytesSent, 
+            result = Send(static_cast<const char*>(data) + totalBytesSent, 
                           bytesRemaining, 
                           bytesSent);
             if (result == Result::Fail)
