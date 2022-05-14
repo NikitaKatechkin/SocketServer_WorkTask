@@ -1,9 +1,11 @@
 #include <SocketLib/IncludeMe.h>
+#include <SocketClient/SocketClient.h>
 #include <iostream>
 #include <thread>
 
 int main()
 {
+	/**
 	if (CustomSocket::NetworkAPIInitializer::Initialize())
 	{
 		std::cout << "The winsock API was successfully initialized." << std::endl;
@@ -12,6 +14,12 @@ int main()
 		if (socket.create() == CustomSocket::Result::Success)
 		{
 			std::cout << "The socket was successfully created." << std::endl;
+
+			if (socket.Bind(CustomSocket::IPEndpoint("127.0.0.1", 4791)) 
+				== CustomSocket::Result::Fail)
+			{
+				throw std::exception();
+			}
 
 			if (socket.Connect(CustomSocket::IPEndpoint("127.0.0.1", 4790))
 				== CustomSocket::Result::Success)
@@ -69,6 +77,23 @@ int main()
 	}
 
 	CustomSocket::NetworkAPIInitializer::Shutdown();
+	**/
+	const CustomSocket::IPEndpoint bindIPendpoint("127.0.0.1", 4791);
+	const CustomSocket::IPEndpoint serverIPendpoint("127.0.0.1", 4790);
+
+	const uint16_t bufferSize = 256;
+	const char message[bufferSize] = "Hello world from client\0";
+
+	SocketClient client(bindIPendpoint);
+
+	client.Connect(serverIPendpoint);
+
+	client.send(message, bufferSize);
+
+	char recieveBuffer[bufferSize];
+	client.recieve(recieveBuffer, bufferSize);
+
+	client.Disconnect();
 
 	system("pause");
 	return 0;

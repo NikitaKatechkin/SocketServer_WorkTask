@@ -57,6 +57,8 @@ void SocketServer::run()
 	m_isRunning = true;
 	m_listenThread = std::thread(&SocketServer::listenLoop, this);
 
+	std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
 	std::cout << "[SERVICE INFO]: ";
 	std::cout << "Server is running..." << std::endl;
 }
@@ -69,14 +71,22 @@ void SocketServer::stop()
 	CustomSocket::Socket fakeConnectionSocket;
 	if (fakeConnectionSocket.create() == CustomSocket::Result::Success)
 	{
+		{
+			std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
+			std::cout << "[SERVICE INFO]: " << "FAKE CONNECTION INITIATED" << std::endl;
+		}
+
 		if (fakeConnectionSocket.Connect(m_IPConfig) == CustomSocket::Result::Success)
 		{
-			/**
 			if (fakeConnectionSocket.close() == CustomSocket::Result::Fail)
 			{
 				throw std::exception();
 			}
-			**/
+			else
+			{
+				//std::cout << "[SERVICE INFO]: " << "FAKE CONNECTION TERMINATED" << std::endl;
+			}
 		}
 		else
 		{
@@ -102,6 +112,10 @@ void SocketServer::stop()
 		}
 	}
 
+	std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
+	std::cout << "[SERVICE INFO]: " << "FAKE CONNECTION TERMINATED" << std::endl;
+
 	std::cout << "[SERVICE INFO]: ";
 	std::cout << "Server was stopped." << std::endl;
 }
@@ -114,9 +128,13 @@ CustomSocket::Result SocketServer::disconnect(const uint16_t port)
 	{
 		if (m_connection[index].second.GetPort() == port)
 		{
-			std::cout << "[CLIENT]: " << "{IP = " << m_connection[index].second.GetIPString();
-			std::cout << "} {PORT = " << m_connection[index].second.GetPort() << "} ";
-			std::cout << "{STATUS = DISCONNECTED}" << std::endl;
+			{
+				std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
+				std::cout << "[CLIENT]: " << "{IP = " << m_connection[index].second.GetIPString();
+				std::cout << "} {PORT = " << m_connection[index].second.GetPort() << "} ";
+				std::cout << "{STATUS = DISCONNECTED}" << std::endl;
+			}
 
 			result = CustomSocket::Result::Success;
 
@@ -149,10 +167,14 @@ CustomSocket::Result SocketServer::recieve(void* destination,
 
 				if (result == CustomSocket::Result::Success)
 				{
+					std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
 					std::cout << "[CLIENT]: " << static_cast<char*>(destination) << std::endl;
 				}
 				else
 				{
+					std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
 					std::cout << "[CLIENT]: " << "{ERROR WHILE RECIEVING MESSAGE}" << std::endl;
 				}
 
@@ -184,6 +206,8 @@ CustomSocket::Result SocketServer::send(const void* data,
 
 				if (result == CustomSocket::Result::Success)
 				{
+					std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
 					std::cout << "[SERVICE INFO]: " << "{ SENT MESSAGE = ";
 					std::cout << static_cast<const char*>(data);
 					std::cout << " } { NUMBER OF BYTES = " << static_cast<int>(numberOfBytes);
@@ -191,6 +215,8 @@ CustomSocket::Result SocketServer::send(const void* data,
 				}
 				else
 				{
+					std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
 					std::cout << "[CLIENT]: " << "{ERROR WHILE SENDING MESSAGE}" << std::endl;
 				}
 
@@ -295,18 +321,24 @@ CustomSocket::Result SocketServer::waitForConnection()
 			m_connection.push_back(CONNECTION_INFO(newConnection, newConnectionIP));
 			SetEvent(m_getInfoEvent);
 
+			std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
 			std::cout << "[CLIENT]: " << "{IP = " << newConnectionIP.GetIPString();
 			std::cout << "} {PORT = " << newConnectionIP.GetPort() << "} ";
 			std::cout << "{STATUS = CONNECTED}" << std::endl;
 		}
 		else
 		{
+			std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
 			std::cerr << "[SERVICE INFO]: ";
 			std::cerr << "Failed to accept new connection. Socket error occured." << std::endl;
 		}
 	}
 	else
 	{
+		std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
 		std::cerr << "[SERVICE INFO]: ";
 		std::cerr << "Failed to accept new connection. Server capacity exceeded." << std::endl;
 	}

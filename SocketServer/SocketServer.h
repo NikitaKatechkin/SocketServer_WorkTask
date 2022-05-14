@@ -2,6 +2,7 @@
 
 #include <SocketLib/IncludeMe.h>
 #include <thread>
+#include <mutex>
 
 class SocketServer final
 {
@@ -41,6 +42,8 @@ private:
 	std::vector<CONNECTION_INFO> m_connection;
 
 	bool m_isRunning = false;
+
+	std::mutex m_printLogMutex;
 	std::thread m_listenThread;
 
 	HANDLE m_getInfoEvent;
