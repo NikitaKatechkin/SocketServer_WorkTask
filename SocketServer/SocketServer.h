@@ -42,4 +42,6 @@ private:
 
 	bool m_isRunning = false;
 	std::thread m_listenThread;
+
+	HANDLE m_getInfoEvent;
 };

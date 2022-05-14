@@ -76,9 +76,7 @@ int main()
 
 	server.run();
 
-	int operationCounter = 0;
-
-	while (operationCounter < 3)
+	for (size_t index = 0; index < 3; index++)
 	{
 		size_t numOfClients = 0;
 		uint16_t* ports = server.getClientsPortList(numOfClients);
@@ -92,6 +90,7 @@ int main()
 					bufferSize,
 					ports[index]);
 
+				/**
 				if (result == CustomSocket::Result::Success)
 				{
 					std::cout << "[CLIENT]: " << recieveBuffer << std::endl;
@@ -100,9 +99,11 @@ int main()
 				{
 					std::cout << "[CLIENT]: " << "{ERROR WHILE RECIEVING MESSAGE}" << std::endl;
 				}
+				**/
 
 				result = server.send(message, bufferSize, ports[index]);
 
+				/**
 				if (result == CustomSocket::Result::Success)
 				{
 					std::cout << "[SERVICE INFO]: " << "{ SENT MESSAGE = " << message;
@@ -113,15 +114,14 @@ int main()
 				{
 					std::cout << "[CLIENT]: " << "{ERROR WHILE SENDING MESSAGE}" << std::endl;
 				}
+				**/
 
 				server.disconnect(ports[index]);
 			}
 
-			operationCounter++;
+			//operationCounter++;
 			delete[] ports;
 		}
-
-		std::this_thread::sleep_for(std::chrono::microseconds(1500));
 	}
 
 	server.stop();

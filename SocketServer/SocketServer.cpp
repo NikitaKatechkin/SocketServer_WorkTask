@@ -34,6 +34,12 @@ SocketServer::SocketServer(CustomSocket::IPEndpoint endpoint,
 		WSAGetLastError();
 		throw std::exception();
 	}
+
+	m_getInfoEvent = CreateEvent(nullptr, TRUE, FALSE, L"ServiceEvent");
+	if (m_getInfoEvent == NULL)
+	{
+		throw std::exception();
+	}
 }
 
 SocketServer::~SocketServer()
@@ -141,6 +147,15 @@ CustomSocket::Result SocketServer::recieve(void* destination,
 			{
 				result = m_connection[index].first.Recieve(destination, numberOfBytes);
 
+				if (result == CustomSocket::Result::Success)
+				{
+					std::cout << "[CLIENT]: " << static_cast<char*>(destination) << std::endl;
+				}
+				else
+				{
+					std::cout << "[CLIENT]: " << "{ERROR WHILE RECIEVING MESSAGE}" << std::endl;
+				}
+
 				break;
 			}
 		}
@@ -166,6 +181,18 @@ CustomSocket::Result SocketServer::send(const void* data,
 			if (m_connection[index].second.GetPort() == port)
 			{
 				result = m_connection[index].first.Send(data, numberOfBytes);
+
+				if (result == CustomSocket::Result::Success)
+				{
+					std::cout << "[SERVICE INFO]: " << "{ SENT MESSAGE = ";
+					std::cout << static_cast<const char*>(data);
+					std::cout << " } { NUMBER OF BYTES = " << static_cast<int>(numberOfBytes);
+					std::cout << " }" << std::endl;
+				}
+				else
+				{
+					std::cout << "[CLIENT]: " << "{ERROR WHILE SENDING MESSAGE}" << std::endl;
+				}
 
 				break;
 			}
@@ -205,6 +232,8 @@ CustomSocket::Result SocketServer::extractConnection(CustomSocket::Socket& outSo
 
 uint16_t* SocketServer::getClientsPortList(size_t& numOfClients)
 {
+	WaitForSingleObject(m_getInfoEvent, INFINITE);
+
 	uint16_t* l_buffer = m_connection.empty() == true ? nullptr : 
 														new uint16_t[m_connection.size()];
 	numOfClients = m_connection.size();
@@ -216,6 +245,8 @@ uint16_t* SocketServer::getClientsPortList(size_t& numOfClients)
 			l_buffer[index] = m_connection[index].second.GetPort();
 		}
 	}
+
+	ResetEvent(m_getInfoEvent);
 
 	return l_buffer;
 }
@@ -229,6 +260,11 @@ void SocketServer::listenLoop()
 {
 	while (m_isRunning == true)
 	{
+		if (m_connection.empty())
+		{
+			ResetEvent(m_getInfoEvent);
+		}
+
 		if (waitForConnection() == CustomSocket::Result::Fail)
 		{
 			break;
@@ -257,6 +293,7 @@ CustomSocket::Result SocketServer::waitForConnection()
 		if (m_listener.Accept(newConnection, &newConnectionIP) == CustomSocket::Result::Success)
 		{
 			m_connection.push_back(CONNECTION_INFO(newConnection, newConnectionIP));
+			SetEvent(m_getInfoEvent);
 
 			std::cout << "[CLIENT]: " << "{IP = " << newConnectionIP.GetIPString();
 			std::cout << "} {PORT = " << newConnectionIP.GetPort() << "} ";
