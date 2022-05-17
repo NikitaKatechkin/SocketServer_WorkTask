@@ -21,13 +21,13 @@ SocketClient::SocketClient(const CustomSocket::IPEndpoint* endpoint,
 
 		if (endpoint != nullptr)
 		{
-			m_IPConfig = CustomSocket::IPEndpoint(*endpoint);
-			if (m_socket.Bind(m_IPConfig) == CustomSocket::Result::Success)
+			m_IPConfig = new CustomSocket::IPEndpoint(*endpoint);
+			if (m_socket.Bind(*m_IPConfig) == CustomSocket::Result::Success)
 			{
 				std::cout << "[SERVICE INFO]: ";
 				std::cout << "Client successfully started from ip = ";
-				std::cout << m_IPConfig.GetIPString();
-				std::cout << " on port " << m_IPConfig.GetPort() << "." << std::endl;
+				std::cout << m_IPConfig->GetIPString();
+				std::cout << " on port " << m_IPConfig->GetPort() << "." << std::endl;
 			}
 			else
 			{
@@ -45,7 +45,12 @@ SocketClient::~SocketClient()
 {
 	if (m_socket.getHandle() != INVALID_SOCKET)
 	{
-		disconnect();
+		m_socket.close();
+	}
+
+	if (m_IPConfig != nullptr)
+	{
+		delete m_IPConfig;
 	}
 
 	CustomSocket::NetworkAPIInitializer::Shutdown();
@@ -77,23 +82,25 @@ CustomSocket::Result SocketClient::disconnect()
 {
 	CustomSocket::Result result = m_socket.close();
 
-	/**
+	
 	if (result == CustomSocket::Result::Success)
 	{
 		result = m_socket.create();
 
 		if (result == CustomSocket::Result::Success)
 		{
-			result = m_socket.Bind(m_IPConfig);
-
-			if (result == CustomSocket::Result::Success)
+			if (m_IPConfig != nullptr)
 			{
-				std::cout << "[SERVICE INFO]: ";
-				std::cout << "Client was successfully disconnected." << std::endl;
+				result = m_socket.Bind(*m_IPConfig);
+
+				if (result == CustomSocket::Result::Success)
+				{
+					std::cout << "[SERVICE INFO]: ";
+					std::cout << "Client was successfully disconnected." << std::endl;
+				}
 			}
 		}
 	}
-	**/
 
 	if (result == CustomSocket::Result::Fail)
 	{

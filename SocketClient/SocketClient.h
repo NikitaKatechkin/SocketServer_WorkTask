@@ -20,5 +20,5 @@ public:
 							  const uint16_t numberOfBytes);
 private:
 	CustomSocket::Socket m_socket;
-	CustomSocket::IPEndpoint m_IPConfig;
+	CustomSocket::IPEndpoint* m_IPConfig = nullptr;
 };
