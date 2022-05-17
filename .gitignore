@@ -1,3 +1,4 @@
 .vs/*
 packages/*
 SocketLibTester/x64/*
+SocketClientTester/x64/*

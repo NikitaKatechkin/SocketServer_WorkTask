@@ -82,7 +82,7 @@ int main()
 	CustomSocket::NetworkAPIInitializer::Shutdown();
 	**/
 
-	
+	/**
 	const CustomSocket::IPEndpoint bindIPendpoint("127.0.0.1", 4791);
 	const CustomSocket::IPEndpoint serverIPendpoint("127.0.0.1", 4790);
 
@@ -103,4 +103,6 @@ int main()
 
 	system("pause");
 	return 0;
+
+	**/
 }

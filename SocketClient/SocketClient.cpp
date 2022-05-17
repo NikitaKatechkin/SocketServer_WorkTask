@@ -9,11 +9,6 @@ SocketClient::SocketClient(const CustomSocket::IPEndpoint* endpoint,
 		throw std::exception();
 	}
 
-	if (CustomSocket::NetworkAPIInitializer::Initialize() == false)
-	{
-		throw std::exception();
-	}
-
 	if (m_socket.create() == CustomSocket::Result::Success)
 	{
 		std::cout << "[SERVICE INFO]: ";
