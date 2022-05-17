@@ -15,17 +15,19 @@ int main()
 		{
 			std::cout << "The socket was successfully created." << std::endl;
 
-			if (socket.Bind(CustomSocket::IPEndpoint("127.0.0.1", 4791)) 
-				== CustomSocket::Result::Fail)
-			{
-				throw std::exception();
-			}
+			
+			//if (socket.Bind(CustomSocket::IPEndpoint("127.0.0.1", 4791)) 
+			//	== CustomSocket::Result::Fail)
+			//{
+			//	throw std::exception();
+			//}
 
 			if (socket.Connect(CustomSocket::IPEndpoint("127.0.0.1", 4790))
 				== CustomSocket::Result::Success)
 			{
 				std::cout << "Succesfully connected to server." << std::endl;
 
+				
 				char buffer[256];
 				strcpy_s(buffer, "Hello world from client)))\0");
 
@@ -50,6 +52,7 @@ int main()
 					}
 				}
 
+				
 				CustomSocket::Result result = CustomSocket::Result::Fail;
 				while (result != CustomSocket::Result::Success)
 				{
@@ -78,22 +81,25 @@ int main()
 
 	CustomSocket::NetworkAPIInitializer::Shutdown();
 	**/
+
+	
 	const CustomSocket::IPEndpoint bindIPendpoint("127.0.0.1", 4791);
 	const CustomSocket::IPEndpoint serverIPendpoint("127.0.0.1", 4790);
 
 	const uint16_t bufferSize = 256;
 	const char message[bufferSize] = "Hello world from client\0";
 
-	SocketClient client(bindIPendpoint);
+	//SocketClient client(&bindIPendpoint);
+	SocketClient client;
 
-	client.Connect(serverIPendpoint);
+	client.connect(serverIPendpoint);
 
 	client.send(message, bufferSize);
 
 	char recieveBuffer[bufferSize];
 	client.recieve(recieveBuffer, bufferSize);
 
-	client.Disconnect();
+	client.disconnect();
 
 	system("pause");
 	return 0;

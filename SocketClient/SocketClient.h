@@ -6,13 +6,13 @@
 class SocketClient
 {
 public:
-	SocketClient(CustomSocket::IPEndpoint endpoint,
+	SocketClient(const CustomSocket::IPEndpoint* endpoint = nullptr,
 				 CustomSocket::IPVersion IPVersion = CustomSocket::IPVersion::IPv4);
 	~SocketClient();
 
 public:
-	CustomSocket::Result Connect(CustomSocket::IPEndpoint outEndpoint);
-	CustomSocket::Result Disconnect();
+	CustomSocket::Result connect(CustomSocket::IPEndpoint outEndpoint);
+	CustomSocket::Result disconnect();
 
 	CustomSocket::Result recieve(void* destination,
 								 const uint16_t numberOfBytes);

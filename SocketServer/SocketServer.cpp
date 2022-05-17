@@ -68,24 +68,24 @@ void SocketServer::stop()
 	m_isRunning = false;
 	m_connection.clear();
 
-	CustomSocket::Socket fakeConnectionSocket;
-	if (fakeConnectionSocket.create() == CustomSocket::Result::Success)
+	if (m_isFinished == false)
 	{
+		CustomSocket::Socket fakeConnectionSocket;
+		if (fakeConnectionSocket.create() == CustomSocket::Result::Success)
 		{
-			std::lock_guard<std::mutex> print_lock(m_printLogMutex);
-
-			std::cout << "[SERVICE INFO]: " << "FAKE CONNECTION INITIATED" << std::endl;
-		}
-
-		if (fakeConnectionSocket.Connect(m_IPConfig) == CustomSocket::Result::Success)
-		{
-			if (fakeConnectionSocket.close() == CustomSocket::Result::Fail)
 			{
-				throw std::exception();
+				std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
+				std::cout << "[SERVICE INFO]: " << "FAKE CONNECTION INITIATED" << std::endl;
+			}
+
+			if (fakeConnectionSocket.Connect(m_IPConfig) == CustomSocket::Result::Success)
+			{
+
 			}
 			else
 			{
-				//std::cout << "[SERVICE INFO]: " << "FAKE CONNECTION TERMINATED" << std::endl;
+				throw std::exception();
 			}
 		}
 		else
@@ -93,11 +93,6 @@ void SocketServer::stop()
 			throw std::exception();
 		}
 	}
-	else
-	{
-		throw std::exception();
-	}
-	
 
 	m_listenThread.join();
 
@@ -124,7 +119,7 @@ CustomSocket::Result SocketServer::disconnect(const uint16_t port)
 {
 	CustomSocket::Result result = CustomSocket::Result::Fail;
 
-	for (uint16_t index = 0; index < m_backlog; index++)
+	for (uint16_t index = 0; index < m_connection.size(); index++)
 	{
 		if (m_connection[index].second.GetPort() == port)
 		{
@@ -157,7 +152,7 @@ CustomSocket::Result SocketServer::recieve(void* destination,
 
 	if (result == CustomSocket::Result::Success)
 	{
-		for (uint16_t index = 0; index < m_backlog; index++)
+		for (uint16_t index = 0; index < m_connection.size(); index++)
 		{
 			result = CustomSocket::Result::Fail;
 
@@ -196,7 +191,7 @@ CustomSocket::Result SocketServer::send(const void* data,
 
 	if (result == CustomSocket::Result::Success)
 	{
-		for (uint16_t index = 0; index < m_backlog; index++)
+		for (uint16_t index = 0; index < m_connection.size(); index++)
 		{
 			result = CustomSocket::Result::Fail;
 
@@ -260,13 +255,13 @@ uint16_t* SocketServer::getClientsPortList(size_t& numOfClients)
 {
 	WaitForSingleObject(m_getInfoEvent, INFINITE);
 
-	uint16_t* l_buffer = m_connection.empty() == true ? nullptr : 
-														new uint16_t[m_connection.size()];
 	numOfClients = m_connection.size();
+	uint16_t* l_buffer = m_connection.empty() == true ? nullptr : 
+														new uint16_t[numOfClients];
 
 	if (l_buffer != nullptr)
 	{
-		for (size_t index = 0; index < m_connection.size(); index++)
+		for (size_t index = 0; index < numOfClients; index++)
 		{
 			l_buffer[index] = m_connection[index].second.GetPort();
 		}
@@ -291,11 +286,14 @@ void SocketServer::listenLoop()
 			ResetEvent(m_getInfoEvent);
 		}
 
-		if (waitForConnection() == CustomSocket::Result::Fail)
+		if ((waitForConnection() == CustomSocket::Result::Fail) && 
+			(m_connection.size() < m_backlog))
 		{
 			break;
 		}
 	}
+
+	m_isFinished = true;
 }
 
 CustomSocket::Result SocketServer::waitForConnection()
@@ -315,8 +313,10 @@ CustomSocket::Result SocketServer::waitForConnection()
 	{
 		CustomSocket::Socket newConnection;
 		CustomSocket::IPEndpoint newConnectionIP;
+		
+		result = m_listener.Accept(newConnection, &newConnectionIP);
 
-		if (m_listener.Accept(newConnection, &newConnectionIP) == CustomSocket::Result::Success)
+		if (result == CustomSocket::Result::Success)
 		{
 			m_connection.push_back(CONNECTION_INFO(newConnection, newConnectionIP));
 			SetEvent(m_getInfoEvent);

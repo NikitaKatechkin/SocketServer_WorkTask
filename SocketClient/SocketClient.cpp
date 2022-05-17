@@ -1,8 +1,8 @@
 #include "SocketClient.h"
 
-SocketClient::SocketClient(CustomSocket::IPEndpoint endpoint, 
+SocketClient::SocketClient(const CustomSocket::IPEndpoint* endpoint,
 						   CustomSocket::IPVersion IPVersion):
-	m_socket(INVALID_SOCKET, IPVersion), m_IPConfig(endpoint)
+	m_socket(INVALID_SOCKET, IPVersion)
 {
 	if (CustomSocket::NetworkAPIInitializer::Initialize() == false)
 	{
@@ -16,16 +16,23 @@ SocketClient::SocketClient(CustomSocket::IPEndpoint endpoint,
 
 	if (m_socket.create() == CustomSocket::Result::Success)
 	{
-		if (m_socket.Bind(m_IPConfig) == CustomSocket::Result::Success)
+		std::cout << "[SERVICE INFO]: ";
+		std::cout << "Client successfully created.";
+
+		if (endpoint != nullptr)
 		{
-			std::cout << "[SERVICE INFO]: ";
-			std::cout << "Client successfully started from ip = ";
-			std::cout << m_IPConfig.GetIPString();
-			std::cout << " on port " << m_IPConfig.GetPort() << "." << std::endl;
-		}
-		else
-		{
-			throw std::exception();
+			m_IPConfig = CustomSocket::IPEndpoint(*endpoint);
+			if (m_socket.Bind(m_IPConfig) == CustomSocket::Result::Success)
+			{
+				std::cout << "[SERVICE INFO]: ";
+				std::cout << "Client successfully started from ip = ";
+				std::cout << m_IPConfig.GetIPString();
+				std::cout << " on port " << m_IPConfig.GetPort() << "." << std::endl;
+			}
+			else
+			{
+				throw std::exception();
+			}
 		}
 	}
 	else
@@ -36,12 +43,15 @@ SocketClient::SocketClient(CustomSocket::IPEndpoint endpoint,
 
 SocketClient::~SocketClient()
 {
-	m_socket.close();
+	if (m_socket.getHandle() != INVALID_SOCKET)
+	{
+		disconnect();
+	}
 
 	CustomSocket::NetworkAPIInitializer::Shutdown();
 }
 
-CustomSocket::Result SocketClient::Connect(CustomSocket::IPEndpoint outEndpoint)
+CustomSocket::Result SocketClient::connect(CustomSocket::IPEndpoint outEndpoint)
 {
 	CustomSocket::Result result = m_socket.Connect(outEndpoint);
 
@@ -63,10 +73,11 @@ CustomSocket::Result SocketClient::Connect(CustomSocket::IPEndpoint outEndpoint)
 	return result;
 }
 
-CustomSocket::Result SocketClient::Disconnect()
+CustomSocket::Result SocketClient::disconnect()
 {
 	CustomSocket::Result result = m_socket.close();
 
+	/**
 	if (result == CustomSocket::Result::Success)
 	{
 		result = m_socket.create();
@@ -82,11 +93,17 @@ CustomSocket::Result SocketClient::Disconnect()
 			}
 		}
 	}
+	**/
 
 	if (result == CustomSocket::Result::Fail)
 	{
 		std::cout << "[SERVICE INFO]: ";
 		std::cout << "Failed to disconnect client." << std::endl;
+	}
+	else
+	{
+		std::cout << "[SERVICE INFO]: ";
+		std::cout << "Client successfully disconnected." << std::endl;
 	}
 
 	return result;

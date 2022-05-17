@@ -31,6 +31,14 @@ namespace CustomSocket
             {
                 result = (setSocketOption(Option::TCP_NoDelay, TRUE) != Result::Success) 
                     ? Result::Fail : Result::Success;
+
+                /**
+                if (result == Result::Success)
+                {
+                    result = (setSocketOption(Option::ReusableAddress, TRUE) != Result::Success)
+                        ? Result::Fail : Result::Success;
+                }
+                **/
             }
         }
         else
@@ -306,6 +314,14 @@ namespace CustomSocket
                 (const char*)&value, sizeof(BOOL));
             break;
         }
+        /**
+        case Option::ReusableAddress:
+        {
+            code_result = setsockopt(m_handle, IPPROTO_TCP, SO_REUSEADDR,
+                (const char*)&value, sizeof(BOOL));
+            break;
+        }
+        **/
         default:
             code_result = -1;
         }

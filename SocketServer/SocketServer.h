@@ -42,6 +42,7 @@ private:
 	std::vector<CONNECTION_INFO> m_connection;
 
 	bool m_isRunning = false;
+	bool m_isFinished = false;
 
 	std::mutex m_printLogMutex;
 	std::thread m_listenThread;

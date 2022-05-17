@@ -23,5 +23,6 @@ namespace CustomSocket
 	enum class Option
 	{
 		TCP_NoDelay,
+		ReusableAddress
 	};
 }
