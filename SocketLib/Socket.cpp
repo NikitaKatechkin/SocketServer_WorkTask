@@ -12,6 +12,11 @@ namespace CustomSocket
         }
     }
 
+    Socket::~Socket()
+    {
+
+    }
+
     Result Socket::create()
     {
         if (m_IPVersion != IPVersion::IPv4)

@@ -10,7 +10,7 @@ namespace CustomSocket
 	public:
 		Socket(SocketHandle handle = INVALID_SOCKET, 
 			   IPVersion IPVersion = IPVersion::IPv4);
-		virtual ~Socket() = default; //Make socket close after using
+		~Socket(); //Make socket close after using
 
 		Result create();
 		Result close();

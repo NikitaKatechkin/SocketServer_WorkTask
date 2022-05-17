@@ -17,8 +17,6 @@ int main()
 	while (ports.size() < 3)
 	{
 		ports = server.getActualClientsPortList();
-
-		//std::cout << "[SERVICE INFO]: Not enough connected clients." << std::endl;
 	}
 	
 	for (size_t index = 0; index < ports.size(); index++)
