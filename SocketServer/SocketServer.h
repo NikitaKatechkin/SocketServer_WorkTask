@@ -25,21 +25,22 @@ public:
 							  const uint16_t numberOfBytes,
 							  const uint16_t port);
 
-	uint16_t* getClientsPortList(size_t& numOfClients);
-	size_t getNumOfClients();
+	std::vector<uint16_t> getActualClientsPortList();
+	std::vector<uint16_t> getClientsPortList();
+
 private:
 	void listenLoop();
 	CustomSocket::Result waitForConnection();
 
 private:
-	using CONNECTION_INFO = std::pair<CustomSocket::Socket, CustomSocket::IPEndpoint>;
+	using ConnectionInfo = std::pair<CustomSocket::Socket, CustomSocket::IPEndpoint>;
 
 private:
 	CustomSocket::Socket m_listener;
 	CustomSocket::IPEndpoint m_IPConfig;
 
 	uint16_t m_backlog = 0;
-	std::vector<CONNECTION_INFO> m_connection;
+	std::vector<ConnectionInfo> m_connection;
 
 	bool m_isRunning = false;
 	bool m_isFinished = false;

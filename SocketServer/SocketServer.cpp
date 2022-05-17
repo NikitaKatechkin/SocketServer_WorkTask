@@ -1,6 +1,7 @@
 #include "SocketServer.h"
 
 #include <iostream>
+#include <algorithm>
 
 SocketServer::SocketServer(CustomSocket::IPEndpoint endpoint, 
 						   CustomSocket::IPVersion IPVersion, 
@@ -17,17 +18,6 @@ SocketServer::SocketServer(CustomSocket::IPEndpoint endpoint,
 	{
 		std::cout << "[SERVICE INFO]: ";
 		std::cout << "Server succesfully created." << std::endl;
-	}
-	else
-	{
-		WSAGetLastError();
-		throw std::exception();
-	}
-
-	if (m_listener.Listen(m_IPConfig, m_backlog) == CustomSocket::Result::Success)
-	{
-		std::cout << "[SERVICE INFO]: ";
-		std::cout << "Server switched to listening state." << std::endl;
 	}
 	else
 	{
@@ -54,8 +44,22 @@ SocketServer::~SocketServer()
 
 void SocketServer::run()
 {
+	if (m_listener.Listen(m_IPConfig, m_backlog) == CustomSocket::Result::Success)
+	{
+		std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
+		std::cout << "[SERVICE INFO]: ";
+		std::cout << "Server switched to listening state." << std::endl;
+	}
+	else
+	{
+		WSAGetLastError();
+		throw std::exception();
+	}
+
 	m_isRunning = true;
 	m_listenThread = std::thread(&SocketServer::listenLoop, this);
+	
 
 	std::lock_guard<std::mutex> print_lock(m_printLogMutex);
 
@@ -66,7 +70,6 @@ void SocketServer::run()
 void SocketServer::stop()
 {
 	m_isRunning = false;
-	m_connection.clear();
 
 	if (m_isFinished == false)
 	{
@@ -96,16 +99,14 @@ void SocketServer::stop()
 
 	m_listenThread.join();
 
-	size_t numOfClients = 0;
-	uint16_t* ports = getClientsPortList(numOfClients);
+	std::vector<uint16_t> ports = getActualClientsPortList();
 
-	if (ports != nullptr)
+	for (size_t index = 0; index < ports.size(); index++)
 	{
-		for (size_t index = 0; index < numOfClients; index++)
-		{
-			disconnect(ports[index]);
-		}
+		disconnect(ports[index]);
 	}
+
+	m_connection.clear();
 
 	std::lock_guard<std::mutex> print_lock(m_printLogMutex);
 
@@ -117,6 +118,7 @@ void SocketServer::stop()
 
 CustomSocket::Result SocketServer::disconnect(const uint16_t port)
 {
+	/**
 	CustomSocket::Result result = CustomSocket::Result::Fail;
 
 	for (uint16_t index = 0; index < m_connection.size(); index++)
@@ -141,13 +143,40 @@ CustomSocket::Result SocketServer::disconnect(const uint16_t port)
 	}
 
 	return result;
+	**/
+
+	auto find_iter = std::find_if(
+		m_connection.begin(),
+		m_connection.end(),
+		[&port](ConnectionInfo info) { return info.second.GetPort() == port; });
+
+	CustomSocket::Result result = (find_iter != m_connection.end()) ? CustomSocket::Result::Success :
+																	  CustomSocket::Result::Fail;
+
+	if (result == CustomSocket::Result::Success)
+	{
+		{
+			std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
+			std::cout << "[CLIENT]: " << "{IP = " << find_iter->second.GetIPString();
+			std::cout << "} {PORT = " << find_iter->second.GetPort() << "} ";
+			std::cout << "{STATUS = DISCONNECTED}" << std::endl;
+		}
+
+		find_iter->first.close();
+		m_connection.erase(find_iter);
+	}
+
+	return result;
 }
 
 CustomSocket::Result SocketServer::recieve(void* destination,
 										   const uint16_t numberOfBytes,
 										   const uint16_t port)
 {
-	CustomSocket::Result result = (destination == nullptr) ? CustomSocket::Result::Fail : 
+	/**
+	CustomSocket::Result result = ((destination == nullptr) || (numberOfBytes == 0)) ? 
+															 CustomSocket::Result::Fail : 
 															 CustomSocket::Result::Success;
 
 	if (result == CustomSocket::Result::Success)
@@ -177,7 +206,44 @@ CustomSocket::Result SocketServer::recieve(void* destination,
 			}
 		}
 	}
-	
+
+	return result;
+	**/
+
+	CustomSocket::Result result = ((destination == nullptr) || (numberOfBytes == 0)) ?
+																		CustomSocket::Result::Fail :
+																		CustomSocket::Result::Success;
+
+	if (result == CustomSocket::Result::Success)
+	{
+		auto find_iter = std::find_if(
+			m_connection.begin(),
+			m_connection.end(),
+			[&port](ConnectionInfo info) { return info.second.GetPort() == port; });
+
+		result = (find_iter != m_connection.end()) ? CustomSocket::Result::Success :
+			CustomSocket::Result::Fail;
+
+
+		if (result == CustomSocket::Result::Success)
+		{
+			result = find_iter->first.Recieve(destination, numberOfBytes);
+
+			if (result == CustomSocket::Result::Success)
+			{
+				std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
+				std::cout << "[CLIENT]: " << static_cast<char*>(destination) << std::endl;
+			}
+			else
+			{
+				std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
+				std::cout << "[CLIENT]: " << "{ERROR WHILE RECIEVING MESSAGE}" << std::endl;
+			}
+
+		}
+	}
 
 	return result;
 }
@@ -186,11 +252,14 @@ CustomSocket::Result SocketServer::send(const void* data,
 										const uint16_t numberOfBytes, 
 										const uint16_t port)
 {
-	CustomSocket::Result result = (data == nullptr) ? CustomSocket::Result::Fail :
+	/**
+	CustomSocket::Result result = (data == nullptr) || (numberOfBytes == 0) ? CustomSocket::Result::Fail :
 		CustomSocket::Result::Success;
 
 	if (result == CustomSocket::Result::Success)
 	{
+		
+
 		for (uint16_t index = 0; index < m_connection.size(); index++)
 		{
 			result = CustomSocket::Result::Fail;
@@ -220,61 +289,74 @@ CustomSocket::Result SocketServer::send(const void* data,
 		}
 	}
 
-
 	return result;
-}
+	**/
 
-/**
-CustomSocket::Result SocketServer::extractConnection(CustomSocket::Socket& outSocket)
-{
-	WaitForSingleObject(m_nonEmptyEvent, INFINITE);
-
-	CustomSocket::Result result = m_connection.empty() == true ? 
-		CustomSocket::Result::Fail : CustomSocket::Result::Success;
+	CustomSocket::Result result = ((data == nullptr) || (numberOfBytes == 0)) ? 
+																	CustomSocket::Result::Fail :
+																	CustomSocket::Result::Success;
 
 	if (result == CustomSocket::Result::Success)
 	{
-		CustomSocket::Socket tmpSocket = m_connection.front();
-		m_connection.erase(m_connection.begin());
+		auto find_iter = std::find_if(
+							m_connection.begin(),
+							m_connection.end(),
+							[&port](ConnectionInfo info) { return info.second.GetPort() == port; });
 
-		outSocket.setHandle(tmpSocket.getHandle());
-		outSocket.setIPVersion(tmpSocket.getIPVersion());
-	}
-	else
-	{
-		std::cout << "[SERVICE INFO]: ";
-		std::cout << "Connection pull is empty. Failed to extract new connection.";
-		std::cout << std::endl;
+		result = (find_iter != m_connection.end()) ? CustomSocket::Result::Success : 
+													 CustomSocket::Result::Fail;
+
+		if (result == CustomSocket::Result::Success)
+		{
+			result = find_iter->first.Send(data, numberOfBytes);
+
+			if (result == CustomSocket::Result::Success)
+			{
+				std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
+				std::cout << "[SERVICE INFO]: " << "{ SENT MESSAGE = ";
+				std::cout << static_cast<const char*>(data);
+				std::cout << " } { NUMBER OF BYTES = " << static_cast<int>(numberOfBytes);
+				std::cout << " }" << std::endl;
+			}
+			else
+			{
+				std::lock_guard<std::mutex> print_lock(m_printLogMutex);
+
+				std::cout << "[CLIENT]: " << "{ERROR WHILE SENDING MESSAGE}" << std::endl;
+			}
+		}
 	}
 
 	return result;
 }
-**/
 
-uint16_t* SocketServer::getClientsPortList(size_t& numOfClients)
+std::vector<uint16_t> SocketServer::getActualClientsPortList()
 {
 	WaitForSingleObject(m_getInfoEvent, INFINITE);
 
-	numOfClients = m_connection.size();
-	uint16_t* l_buffer = m_connection.empty() == true ? nullptr : 
-														new uint16_t[numOfClients];
+	std::vector<uint16_t> result;
 
-	if (l_buffer != nullptr)
+	for (size_t index = 0; index < m_connection.size(); index++)
 	{
-		for (size_t index = 0; index < numOfClients; index++)
-		{
-			l_buffer[index] = m_connection[index].second.GetPort();
-		}
+		result.push_back(m_connection[index].second.GetPort());
 	}
 
 	ResetEvent(m_getInfoEvent);
 
-	return l_buffer;
+	return result;
 }
 
-size_t SocketServer::getNumOfClients()
+std::vector<uint16_t> SocketServer::getClientsPortList()
 {
-	return m_connection.size();
+	std::vector<uint16_t> result;
+
+	for (size_t index = 0; index < m_connection.size(); index++)
+	{
+		result.push_back(m_connection[index].second.GetPort());
+	}
+
+	return result;
 }
 
 void SocketServer::listenLoop()
@@ -289,6 +371,7 @@ void SocketServer::listenLoop()
 		if ((waitForConnection() == CustomSocket::Result::Fail) && 
 			(m_connection.size() < m_backlog))
 		{
+			ResetEvent(m_getInfoEvent);
 			break;
 		}
 	}
@@ -318,7 +401,7 @@ CustomSocket::Result SocketServer::waitForConnection()
 
 		if (result == CustomSocket::Result::Success)
 		{
-			m_connection.push_back(CONNECTION_INFO(newConnection, newConnectionIP));
+			m_connection.emplace_back(newConnection, newConnectionIP);
 			SetEvent(m_getInfoEvent);
 
 			std::lock_guard<std::mutex> print_lock(m_printLogMutex);

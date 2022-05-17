@@ -17,7 +17,7 @@ SocketClient::SocketClient(const CustomSocket::IPEndpoint* endpoint,
 	if (m_socket.create() == CustomSocket::Result::Success)
 	{
 		std::cout << "[SERVICE INFO]: ";
-		std::cout << "Client successfully created.";
+		std::cout << "Client successfully created." << std::endl;
 
 		if (endpoint != nullptr)
 		{
@@ -66,6 +66,32 @@ CustomSocket::Result SocketClient::connect(CustomSocket::IPEndpoint outEndpoint)
 		std::cout << "Client was successfully connected to point ";
 		std::cout << "{IP = " << outEndpoint.GetIPString() << "} {PORT = ";
 		std::cout << outEndpoint.GetPort() << "}." << std::endl;
+
+		sockaddr_in addr = {};
+		int addr_len = sizeof(sockaddr_in);
+
+		if (m_IPConfig == nullptr)
+		{
+			CustomSocket::Result result = getsockname(m_socket.getHandle(),
+				reinterpret_cast<sockaddr*>(&addr),
+				&addr_len) != 0 ? CustomSocket::Result::Fail :
+				CustomSocket::Result::Success;
+
+			if (result == CustomSocket::Result::Success)
+			{
+				addr.sin_family = AF_INET;
+				m_IPConfig = new CustomSocket::IPEndpoint(reinterpret_cast<sockaddr*>(&addr));
+
+				std::cout << "[SERVICE INFO]: ";
+				std::cout << "Client successfully started from ip = ";
+				std::cout << m_IPConfig->GetIPString();
+				std::cout << " on port " << m_IPConfig->GetPort() << "." << std::endl;
+			}
+			else
+			{
+				throw std::exception();
+			}
+		}
 	}
 	else
 	{
@@ -107,11 +133,11 @@ CustomSocket::Result SocketClient::disconnect()
 		std::cout << "[SERVICE INFO]: ";
 		std::cout << "Failed to disconnect client." << std::endl;
 	}
-	else
-	{
-		std::cout << "[SERVICE INFO]: ";
-		std::cout << "Client successfully disconnected." << std::endl;
-	}
+	//else
+	//{
+	//	std::cout << "[SERVICE INFO]: ";
+	//	std::cout << "Client successfully disconnected." << std::endl;
+	//}
 
 	return result;
 }

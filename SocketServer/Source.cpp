@@ -12,22 +12,19 @@ int main()
 
 	server.run();
 
-	
-	size_t numOfClients = 0;
-	uint16_t* ports = server.getClientsPortList(numOfClients);
+	std::vector<uint16_t> ports = server.getClientsPortList();
 
-	while (numOfClients < 3)
+	while (ports.size() < 3)
 	{
-		ports = server.getClientsPortList(numOfClients);
+		ports = server.getActualClientsPortList();
 
 		//std::cout << "[SERVICE INFO]: Not enough connected clients." << std::endl;
 	}
 	
-	for (size_t index = 0; index < numOfClients; index++)
+	for (size_t index = 0; index < ports.size(); index++)
 	{
-		if (ports != nullptr)
-		{
-			for (size_t index = 0; index < numOfClients; index++)
+		
+			for (size_t index = 0; index < ports.size(); index++)
 			{
 				char recieveBuffer[bufferSize];
 				CustomSocket::Result result = server.recieve(recieveBuffer,
@@ -38,14 +35,9 @@ int main()
 
 				server.disconnect(ports[index]);
 			}
-
-			
-		}
 	}
 
 	server.stop();
-
-	delete[] ports;
 
 	system("pause");
 	return 0;
