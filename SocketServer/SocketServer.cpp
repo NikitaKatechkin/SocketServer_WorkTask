@@ -172,42 +172,6 @@ CustomSocket::Result SocketServer::recieve(void* destination,
 										   const uint16_t numberOfBytes,
 										   const uint16_t port)
 {
-	/**
-	CustomSocket::Result result = ((destination == nullptr) || (numberOfBytes == 0)) ? 
-															 CustomSocket::Result::Fail : 
-															 CustomSocket::Result::Success;
-
-	if (result == CustomSocket::Result::Success)
-	{
-		for (uint16_t index = 0; index < m_connection.size(); index++)
-		{
-			result = CustomSocket::Result::Fail;
-
-			if (m_connection[index].second.GetPort() == port)
-			{
-				result = m_connection[index].first.Recieve(destination, numberOfBytes);
-
-				if (result == CustomSocket::Result::Success)
-				{
-					std::lock_guard<std::mutex> print_lock(m_printLogMutex);
-
-					std::cout << "[CLIENT]: " << static_cast<char*>(destination) << std::endl;
-				}
-				else
-				{
-					std::lock_guard<std::mutex> print_lock(m_printLogMutex);
-
-					std::cout << "[CLIENT]: " << "{ERROR WHILE RECIEVING MESSAGE}" << std::endl;
-				}
-
-				break;
-			}
-		}
-	}
-
-	return result;
-	**/
-
 	CustomSocket::Result result = ((destination == nullptr) || (numberOfBytes == 0)) ?
 																		CustomSocket::Result::Fail :
 																		CustomSocket::Result::Success;
@@ -250,46 +214,6 @@ CustomSocket::Result SocketServer::send(const void* data,
 										const uint16_t numberOfBytes, 
 										const uint16_t port)
 {
-	/**
-	CustomSocket::Result result = (data == nullptr) || (numberOfBytes == 0) ? CustomSocket::Result::Fail :
-		CustomSocket::Result::Success;
-
-	if (result == CustomSocket::Result::Success)
-	{
-		
-
-		for (uint16_t index = 0; index < m_connection.size(); index++)
-		{
-			result = CustomSocket::Result::Fail;
-
-			if (m_connection[index].second.GetPort() == port)
-			{
-				result = m_connection[index].first.Send(data, numberOfBytes);
-
-				if (result == CustomSocket::Result::Success)
-				{
-					std::lock_guard<std::mutex> print_lock(m_printLogMutex);
-
-					std::cout << "[SERVICE INFO]: " << "{ SENT MESSAGE = ";
-					std::cout << static_cast<const char*>(data);
-					std::cout << " } { NUMBER OF BYTES = " << static_cast<int>(numberOfBytes);
-					std::cout << " }" << std::endl;
-				}
-				else
-				{
-					std::lock_guard<std::mutex> print_lock(m_printLogMutex);
-
-					std::cout << "[CLIENT]: " << "{ERROR WHILE SENDING MESSAGE}" << std::endl;
-				}
-
-				break;
-			}
-		}
-	}
-
-	return result;
-	**/
-
 	CustomSocket::Result result = ((data == nullptr) || (numberOfBytes == 0)) ? 
 																	CustomSocket::Result::Fail :
 																	CustomSocket::Result::Success;
@@ -370,14 +294,6 @@ void SocketServer::listenLoop()
 
 CustomSocket::Result SocketServer::waitForConnection()
 {
-	/**
-	if ((m_connection.empty() == true) &&
-		(WaitForSingleObject(m_nonEmptyEvent, 0) == WAIT_OBJECT_0))
-	{
-		ResetEvent(m_nonEmptyEvent);
-	}
-	**/
-
 	CustomSocket::Result result = m_connection.size() < m_backlog ? CustomSocket::Result::Success : 
 																	CustomSocket::Result::Fail;
 

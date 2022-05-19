@@ -128,11 +128,6 @@ CustomSocket::Result SocketClient::disconnect()
 		std::cout << "[SERVICE INFO]: ";
 		std::cout << "Failed to disconnect client." << std::endl;
 	}
-	//else
-	//{
-	//	std::cout << "[SERVICE INFO]: ";
-	//	std::cout << "Client successfully disconnected." << std::endl;
-	//}
 
 	return result;
 }
