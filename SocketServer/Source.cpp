@@ -4,6 +4,7 @@
 
 int main()
 {
+	/**
 	const CustomSocket::IPEndpoint IPSettings("127.0.0.1", 4790);
 	const uint16_t bufferSize = 256;
 	const char message[bufferSize] = "Hello world from server\0";
@@ -39,4 +40,5 @@ int main()
 
 	system("pause");
 	return 0;
+	**/
 }

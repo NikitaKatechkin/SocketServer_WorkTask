@@ -2,3 +2,4 @@
 packages/*
 SocketLibTester/x64/*
 SocketClientTester/x64/*
+SocketServerTester/x64/* 

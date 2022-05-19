@@ -20,7 +20,7 @@ namespace CustomSocket
 		std::string GetHostname();
 		std::string GetIPString();
 		uint8_t* GetIPBytes();
-		uint16_t GetPort();
+		uint16_t GetPort() const;
 
 		sockaddr_in GetSockaddrIPv4();
 	public:

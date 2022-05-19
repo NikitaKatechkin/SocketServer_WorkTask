@@ -3,6 +3,8 @@
 #include <SocketClient/SocketClient.h>
 #include <thread>
 
+//TODO: implement const configs to client
+
 TEST(SocketClientTestCase, ConstructorTest) 
 {
 	//NEGATIVE PART
@@ -107,8 +109,10 @@ TEST(SocketClientTestCase, RecieveTest)
 	EXPECT_EQ(client.recieve(nullptr, 0), CustomSocket::Result::Fail);
 
 	const uint16_t bufferSize = 256;
-	char buffer[bufferSize];
+	char buffer[bufferSize] = { };
 	EXPECT_EQ(client.recieve(buffer, bufferSize), CustomSocket::Result::Fail);
+
+	//ADD TEST WITH VALID CONNECTION BUT TRY TO RECIEVE NONVALID PARAMS
 
 	//POSITIVE TEST
 
@@ -150,7 +154,7 @@ TEST(SocketClientTestCase, SendTest)
 	SocketClient client;
 	EXPECT_EQ(client.send(nullptr, 0), CustomSocket::Result::Fail);
 
-	const uint16_t bufferSize = 256;
+	const uint16_t bufferSize = 32;
 	const char buffer[bufferSize] = "Hello world)))";
 	EXPECT_EQ(client.send(buffer, bufferSize), CustomSocket::Result::Fail);
 
@@ -173,7 +177,7 @@ TEST(SocketClientTestCase, SendTest)
 
 	listeningThread.join();
 
-	char recieveBuffer[bufferSize];
+	char recieveBuffer[bufferSize] = { };
 	listeningThread = std::thread(&CustomSocket::Socket::Recieve,
 		newConnection,
 		std::ref(recieveBuffer),
@@ -191,4 +195,27 @@ int main(int argc, char* argv[])
 {
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
+
+	/**
+	const CustomSocket::IPEndpoint bindIPendpoint("127.0.0.1", 4791);
+	const CustomSocket::IPEndpoint serverIPendpoint("127.0.0.1", 4790);
+
+	const uint16_t bufferSize = 256;
+	const char message[bufferSize] = "Hello world from client\0";
+
+	//SocketClient client(&bindIPendpoint);
+	SocketClient client;
+
+	client.connect(serverIPendpoint);
+
+	client.send(message, bufferSize);
+
+	char recieveBuffer[bufferSize];
+	client.recieve(recieveBuffer, bufferSize);
+
+	client.disconnect();
+
+	system("pause");
+	return 0;
+	**/
 }

@@ -82,11 +82,7 @@ void SocketServer::stop()
 				std::cout << "[SERVICE INFO]: " << "FAKE CONNECTION INITIATED" << std::endl;
 			}
 
-			if (fakeConnectionSocket.Connect(m_IPConfig) == CustomSocket::Result::Success)
-			{
-
-			}
-			else
+			if (fakeConnectionSocket.Connect(m_IPConfig) != CustomSocket::Result::Success)
 			{
 				throw std::exception();
 			}
@@ -99,7 +95,7 @@ void SocketServer::stop()
 
 	m_listenThread.join();
 
-	std::vector<uint16_t> ports = getActualClientsPortList();
+	std::vector<uint16_t> ports = getClientsPortList();
 
 	for (size_t index = 0; index < ports.size(); index++)
 	{
@@ -107,6 +103,8 @@ void SocketServer::stop()
 	}
 
 	m_connection.clear();
+
+	m_listener.close();
 
 	std::lock_guard<std::mutex> print_lock(m_printLogMutex);
 
@@ -145,12 +143,12 @@ CustomSocket::Result SocketServer::disconnect(const uint16_t port)
 	return result;
 	**/
 
-	auto find_iter = std::find_if(
+	auto portToDisconnect = std::find_if(
 		m_connection.begin(),
 		m_connection.end(),
 		[&port](ConnectionInfo info) { return info.second.GetPort() == port; });
 
-	CustomSocket::Result result = (find_iter != m_connection.end()) ? CustomSocket::Result::Success :
+	CustomSocket::Result result = (portToDisconnect != m_connection.end()) ? CustomSocket::Result::Success :
 																	  CustomSocket::Result::Fail;
 
 	if (result == CustomSocket::Result::Success)
@@ -158,13 +156,13 @@ CustomSocket::Result SocketServer::disconnect(const uint16_t port)
 		{
 			std::lock_guard<std::mutex> print_lock(m_printLogMutex);
 
-			std::cout << "[CLIENT]: " << "{IP = " << find_iter->second.GetIPString();
-			std::cout << "} {PORT = " << find_iter->second.GetPort() << "} ";
+			std::cout << "[CLIENT]: " << "{IP = " << portToDisconnect->second.GetIPString();
+			std::cout << "} {PORT = " << portToDisconnect->second.GetPort() << "} ";
 			std::cout << "{STATUS = DISCONNECTED}" << std::endl;
 		}
 
-		find_iter->first.close();
-		m_connection.erase(find_iter);
+		//portToDisconnect->first.close();
+		m_connection.erase(portToDisconnect);
 	}
 
 	return result;
@@ -337,9 +335,9 @@ std::vector<uint16_t> SocketServer::getActualClientsPortList()
 
 	std::vector<uint16_t> result;
 
-	for (size_t index = 0; index < m_connection.size(); index++)
+	for (const auto& connection : m_connection)
 	{
-		result.push_back(m_connection[index].second.GetPort());
+		result.push_back(connection.second.GetPort());
 	}
 
 	ResetEvent(m_getInfoEvent);
@@ -351,9 +349,9 @@ std::vector<uint16_t> SocketServer::getClientsPortList()
 {
 	std::vector<uint16_t> result;
 
-	for (size_t index = 0; index < m_connection.size(); index++)
+	for (const auto & connection : m_connection)
 	{
-		result.push_back(m_connection[index].second.GetPort());
+		result.push_back(connection.second.GetPort());
 	}
 
 	return result;

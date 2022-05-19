@@ -152,7 +152,7 @@ namespace CustomSocket
 		return m_ipBytes;
 	}
 
-	uint16_t IPEndpoint::GetPort()
+	uint16_t IPEndpoint::GetPort() const
 	{
 		return m_port;
 	}
