@@ -238,7 +238,7 @@ namespace CustomSocket
         return result;
     }
 
-    Result Socket::Send(const void* data, int numberOfBytes)
+    Result Socket::Send(const void* data, int numberOfBytes, int* bytesSent)
     {
         int totalBytesSent = 0;
         Result result = Result::Success;
@@ -259,10 +259,15 @@ namespace CustomSocket
             totalBytesSent += bytesSent;
         }
 
+        if (bytesSent != nullptr)
+        {
+            *bytesSent = totalBytesSent;
+        }
+
         return result;
     }
 
-    Result Socket::Recieve(void* data, int numberOfBytes)
+    Result Socket::Recieve(void* data, int numberOfBytes, int* bytesRecieved)
     {
         int totalBytesRecieved = 0;
         Result result = Result::Success;
@@ -281,6 +286,11 @@ namespace CustomSocket
             }
 
             totalBytesRecieved += bytesRecieved;
+        }
+
+        if (bytesRecieved != nullptr)
+        {
+            *bytesRecieved = totalBytesRecieved;
         }
 
         return result;

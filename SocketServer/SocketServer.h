@@ -25,7 +25,7 @@ public:
 							  const uint16_t numberOfBytes,
 							  const uint16_t port);
 
-	std::vector<uint16_t> getActualClientsPortList(); //TODO: change to waitForClient 
+	void waitForClientToConnect(); //TODO: change to waitForClient 
 	std::vector<uint16_t> getClientsPortList();
 
 private:

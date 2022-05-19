@@ -21,8 +21,8 @@ namespace CustomSocket
 		Result Accept(Socket& outSocket, IPEndpoint* outEndpoint = nullptr);
 		Result Connect(IPEndpoint endpoint);
 
-		Result Send(const void* data, int numberOfBytes);
-		Result Recieve(void* data, int numberOfBytes);
+		Result Send(const void* data, int numberOfBytes, int* bytesSent = nullptr);
+		Result Recieve(void* data, int numberOfBytes, int* bytesRecieved = nullptr);
 
 		SocketHandle getHandle();
 		IPVersion getIPVersion();

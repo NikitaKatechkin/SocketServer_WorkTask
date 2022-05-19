@@ -114,7 +114,8 @@ int main(int argc, char* argv[])
 
 	while (ports.size() < 3)
 	{
-		ports = server.getActualClientsPortList();
+		server.waitForClientToConnect();
+		ports = server.getClientsPortList();
 	}
 
 	for (size_t index = 0; index < ports.size(); index++)

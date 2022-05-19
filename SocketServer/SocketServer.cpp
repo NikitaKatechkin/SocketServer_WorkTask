@@ -329,20 +329,11 @@ CustomSocket::Result SocketServer::send(const void* data,
 	return result;
 }
 
-std::vector<uint16_t> SocketServer::getActualClientsPortList()
+void SocketServer::waitForClientToConnect()
 {
 	WaitForSingleObject(m_getInfoEvent, INFINITE);
 
-	std::vector<uint16_t> result;
-
-	for (const auto& connection : m_connection)
-	{
-		result.push_back(connection.second.GetPort());
-	}
-
 	ResetEvent(m_getInfoEvent);
-
-	return result;
 }
 
 std::vector<uint16_t> SocketServer::getClientsPortList()
