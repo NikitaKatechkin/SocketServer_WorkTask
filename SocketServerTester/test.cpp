@@ -85,14 +85,124 @@ TEST(SocketServerTestCase, DisconnectTest)
 		CustomSocket::Socket client;
 		client.create();
 
+		std::thread newThread(&SocketServer::waitForClientToConnect, std::ref(server));
+
 		client.Bind(CustomSocket::IPEndpoint("127.0.0.1", 4791));
 		client.Connect(CustomSocket::IPEndpoint("127.0.0.1", 4790));
 
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		newThread.join();
 
 		EXPECT_EQ(server.disconnect(4791), CustomSocket::Result::Success);
 		client.close();
 		EXPECT_NO_THROW(server.stop());
+	}
+}
+
+TEST(SocketServerTestCase, RecieveTest)
+{
+	const int bufferSize = 256;
+
+	{
+		SocketServer server(CustomSocket::IPEndpoint("127.0.0.1", 4790));
+		EXPECT_NO_THROW(server.run());
+
+		char recieveBuffer[bufferSize] = {};
+
+		EXPECT_EQ(server.recieve(nullptr, 256, 0), CustomSocket::Result::Fail);
+		EXPECT_EQ(server.recieve(recieveBuffer, 0, 0), CustomSocket::Result::Fail);
+
+		EXPECT_EQ(server.recieve(recieveBuffer, bufferSize, 0), CustomSocket::Result::Fail);
+
+		EXPECT_NO_THROW(server.stop());
+	}
+
+	//POSITIVE PART
+	{
+		SocketServer server(CustomSocket::IPEndpoint("127.0.0.1", 4790));
+		EXPECT_NO_THROW(server.run());
+
+		CustomSocket::Socket client;
+		client.create();
+
+		std::thread newThread(&SocketServer::waitForClientToConnect, std::ref(server));
+
+		client.Bind(CustomSocket::IPEndpoint("127.0.0.1", 4791));
+		client.Connect(CustomSocket::IPEndpoint("127.0.0.1", 4790));
+
+		newThread.join();
+
+		const char buffer[bufferSize] = "Hello world)))\0";
+
+		newThread = std::thread(&CustomSocket::Socket::Send, 
+								std::ref(client),
+								std::ref(buffer), 
+								static_cast<int>(bufferSize), 
+								nullptr);
+
+		char recieveBuffer[bufferSize] = {};
+		EXPECT_EQ(server.recieve(recieveBuffer, bufferSize, 4791), CustomSocket::Result::Success);
+
+		newThread.join();
+
+		EXPECT_EQ(server.disconnect(4791), CustomSocket::Result::Success);
+		client.close();
+		EXPECT_NO_THROW(server.stop());
+
+		EXPECT_EQ(memcmp(buffer, recieveBuffer, bufferSize), 0);
+	}
+}
+
+TEST(SocketServerTestCase, SendTest)
+{
+	const int bufferSize = 256;
+
+	{
+		SocketServer server(CustomSocket::IPEndpoint("127.0.0.1", 4790));
+		EXPECT_NO_THROW(server.run());
+
+		const char sendBuffer[bufferSize] = "Hello world)))\0";
+
+		EXPECT_EQ(server.send(nullptr, 256, 0), CustomSocket::Result::Fail);
+		EXPECT_EQ(server.send(sendBuffer, 0, 0), CustomSocket::Result::Fail);
+
+		EXPECT_EQ(server.send(sendBuffer, bufferSize, 0), CustomSocket::Result::Fail);
+
+		EXPECT_NO_THROW(server.stop());
+	}
+
+	//POSITIVE PART
+	{
+		SocketServer server(CustomSocket::IPEndpoint("127.0.0.1", 4790));
+		EXPECT_NO_THROW(server.run());
+
+		CustomSocket::Socket client;
+		client.create();
+
+		std::thread newThread(&SocketServer::waitForClientToConnect, std::ref(server));
+
+		client.Bind(CustomSocket::IPEndpoint("127.0.0.1", 4791));
+		client.Connect(CustomSocket::IPEndpoint("127.0.0.1", 4790));
+
+		newThread.join();
+
+		char buffer[bufferSize] = { };
+
+		newThread = std::thread(&CustomSocket::Socket::Recieve,
+			std::ref(client),
+			std::ref(buffer),
+			static_cast<int>(bufferSize),
+			nullptr);
+
+		const char sendBuffer[bufferSize] = "Hello world)))\0";
+		EXPECT_EQ(server.send(sendBuffer, bufferSize, 4791), CustomSocket::Result::Success);
+
+		newThread.join();
+
+		EXPECT_EQ(server.disconnect(4791), CustomSocket::Result::Success);
+		client.close();
+		EXPECT_NO_THROW(server.stop());
+
+		EXPECT_EQ(memcmp(buffer, sendBuffer, bufferSize), 0);
 	}
 }
 
