@@ -3,26 +3,34 @@
 #include <SocketClient/SocketClient.h>
 #include <thread>
 
-TEST(SocketClientTestCase, ConstructorTest) 
+TEST(SocketClientTestCase, UnknownIPVersionConstructorTest)
 {
-	//NEGATIVE PART
-
-	const CustomSocket::IPEndpoint validIPConfig("127.0.0.1", 4790);
-
 	try
 	{
 		SocketClient client(nullptr, CustomSocket::IPVersion::Unknown);
 		FAIL() << "Expect constructor to fail.";
 	}
 	catch (const std::exception&) {}
+}
+
+TEST(SocketClientTestCase, UnknownIPVersionWithValidIPEndpointConstructorTest)
+{
+	const CustomSocket::IPEndpoint validIPConfig("127.0.0.1", 4790);
 
 	try
 	{
 		SocketClient client(&validIPConfig,
-							CustomSocket::IPVersion::Unknown);
+			CustomSocket::IPVersion::Unknown);
 		FAIL() << "Expect constructor to fail.";
 	}
 	catch (const std::exception&) {}
+}
+
+TEST(SocketClientTestCase, IPAddressInUseConstructorTest)
+{
+	//NEGATIVE PART
+
+	const CustomSocket::IPEndpoint validIPConfig("127.0.0.1", 4790);
 
 	try
 	{
@@ -31,8 +39,11 @@ TEST(SocketClientTestCase, ConstructorTest)
 
 		FAIL() << "Expect constructor to fail.";
 	}
-	catch (const std::exception&) { }
+	catch (const std::exception&) {}
+}
 
+TEST(SocketClientTestCase, InvalidIPAddressConstructorTest)
+{
 	try
 	{
 		SocketClient client(&CustomSocket::IPEndpoint("327.0.0.1", 4790));
@@ -40,26 +51,38 @@ TEST(SocketClientTestCase, ConstructorTest)
 		FAIL() << "Expect constructor to fail.";
 	}
 	catch (const std::exception&) {}
+}
 
-	//POSITIVE PART
-
+TEST(SocketClientTestCase, DefaultConstructorTest) 
+{
 	EXPECT_NO_THROW(SocketClient());
+}
+
+TEST(SocketClientTestCase, ValidIPAddressConstructorTest)
+{
+	const CustomSocket::IPEndpoint validIPConfig("127.0.0.1", 4790);
+
 	EXPECT_NO_THROW(SocketClient(validIPConfig));
 }
 
-TEST(SocketClientTestCase, ConnectTest)
+TEST(SocketClientTestCase, ConnectToNonExistingServerTest)
+{
+	const CustomSocket::IPEndpoint serverIPConfig("127.0.0.1", 4790);
+
+	SocketClient client;
+
+	EXPECT_EQ(client.connect(serverIPConfig),
+		CustomSocket::Result::Fail);
+
+}
+
+TEST(SocketClientTestCase, ConnectToValidServerTest)
 {
 	const CustomSocket::IPEndpoint serverIPConfig("127.0.0.1", 4790);
 
 	//NEGATIVE PART
 
 	SocketClient client;
-
-	EXPECT_EQ(client.connect(serverIPConfig),
-			  CustomSocket::Result::Fail);
-
-	//POSITIVE PART
-
 	CustomSocket::Socket server;
 
 	EXPECT_EQ(server.create(), CustomSocket::Result::Success);
@@ -105,22 +128,73 @@ TEST(SocketClientTestCase, DisconnectTest)
 	EXPECT_EQ(client.disconnect(), CustomSocket::Result::Success);
 }
 
+TEST(SocketClientTestCase, NonValidBufferToReadRecieveTest)
+{
+	SocketClient client;
+	EXPECT_EQ(client.recieve(nullptr, 0), CustomSocket::Result::Fail);
+}
+
+TEST(SocketClientTestCase, NotConnectedRecieveTest)
+{
+	SocketClient client;
+
+	const uint16_t bufferSize = 256;
+	char buffer[bufferSize] = { };
+
+	EXPECT_EQ(client.recieve(buffer, bufferSize), CustomSocket::Result::Fail);
+}
+
+TEST(SocketClientTestCase, ConnectedNonValidBufferToReadRecieveTest)
+{
+	const CustomSocket::IPEndpoint serverIPConfig("127.0.0.1", 4794);
+
+	SocketClient client;
+
+	const uint16_t bufferSize = 256;
+	char buffer[bufferSize] = { };
+
+	CustomSocket::Socket server;
+
+	EXPECT_EQ(server.create(), CustomSocket::Result::Success);
+	EXPECT_EQ(server.Listen(serverIPConfig),
+		CustomSocket::Result::Success);
+
+	CustomSocket::Socket newConnection;
+	std::thread listeningThread(&CustomSocket::Socket::Accept,
+		server,
+		std::ref(newConnection),
+		nullptr);
+
+	EXPECT_EQ(client.connect(serverIPConfig),
+		CustomSocket::Result::Success);
+
+	listeningThread.join();
+
+	const char sendBuffer[bufferSize] = "Hello world)))\0";
+	int bytesSent = 0;
+
+	listeningThread = std::thread(&CustomSocket::Socket::Send,
+		newConnection,
+		std::ref(sendBuffer),
+		static_cast<int>(bufferSize),
+		&bytesSent);
+
+	EXPECT_EQ(client.recieve(nullptr, 0), CustomSocket::Result::Fail);
+
+	listeningThread.join();
+
+	EXPECT_EQ(client.disconnect(), CustomSocket::Result::Success);
+	server.close();
+}
+
 TEST(SocketClientTestCase, RecieveTest)
 {
 	const CustomSocket::IPEndpoint serverIPConfig("127.0.0.1", 4794);
 
-	//NEGATIVE TEST
-
 	SocketClient client;
-	EXPECT_EQ(client.recieve(nullptr, 0), CustomSocket::Result::Fail);
 
 	const uint16_t bufferSize = 256;
 	char buffer[bufferSize] = { };
-	EXPECT_EQ(client.recieve(buffer, bufferSize), CustomSocket::Result::Fail);
-
-	//ADD TEST WITH VALID CONNECTION BUT TRY TO RECIEVE NONVALID PARAMS
-
-	//POSITIVE TEST
 
 	CustomSocket::Socket server;
 
@@ -148,7 +222,6 @@ TEST(SocketClientTestCase, RecieveTest)
 								  static_cast<int>(bufferSize),
 								  &bytesSent);
 
-	EXPECT_EQ(client.recieve(nullptr, 0), CustomSocket::Result::Fail);
 	EXPECT_EQ(client.recieve(buffer, bufferSize), CustomSocket::Result::Success);
 
 	listeningThread.join();
@@ -158,18 +231,30 @@ TEST(SocketClientTestCase, RecieveTest)
 	EXPECT_EQ(bytesSent, bufferSize);
 }
 
-TEST(SocketClientTestCase, SendTest)
+TEST(SocketClientTestCase, NonValidBufferToWriteSendTest)
 {
-	const CustomSocket::IPEndpoint serverIPConfig("127.0.0.1", 4796);
-
-	//NEGATIVE TEST
-
 	SocketClient client;
 	EXPECT_EQ(client.send(nullptr, 0), CustomSocket::Result::Fail);
+}
+
+TEST(SocketClientTestCase, NotConnectedSendTest)
+{
+	SocketClient client;
 
 	const uint16_t bufferSize = 32;
 	const char buffer[bufferSize] = "Hello world)))";
+
 	EXPECT_EQ(client.send(buffer, bufferSize), CustomSocket::Result::Fail);
+}
+
+TEST(SocketClientTestCase, ConnectedNonValidBufferToWriteSendTest)
+{
+	const CustomSocket::IPEndpoint serverIPConfig("127.0.0.1", 4796);
+
+	SocketClient client;
+
+	const uint16_t bufferSize = 32;
+	const char buffer[bufferSize] = "Hello world)))";
 
 	//POSITIVE TEST
 
@@ -199,8 +284,52 @@ TEST(SocketClientTestCase, SendTest)
 		static_cast<int>(bufferSize),
 		&bytesRecieved);
 
-	EXPECT_EQ(client.send(buffer, bufferSize), CustomSocket::Result::Success);
 	EXPECT_EQ(client.send(nullptr, 0), CustomSocket::Result::Fail);
+	client.send(buffer, bufferSize);
+
+	listeningThread.join();
+
+	server.close();
+}
+
+TEST(SocketClientTestCase, SendTest)
+{
+	const CustomSocket::IPEndpoint serverIPConfig("127.0.0.1", 4796);
+
+	//NEGATIVE TEST
+
+	SocketClient client;
+
+	const uint16_t bufferSize = 32;
+	const char buffer[bufferSize] = "Hello world)))";
+
+	CustomSocket::Socket server;
+
+	EXPECT_EQ(server.create(), CustomSocket::Result::Success);
+	EXPECT_EQ(server.Listen(serverIPConfig),
+		CustomSocket::Result::Success);
+
+	CustomSocket::Socket newConnection;
+	std::thread listeningThread(&CustomSocket::Socket::Accept,
+		server,
+		std::ref(newConnection),
+		nullptr);
+
+	EXPECT_EQ(client.connect(serverIPConfig),
+		CustomSocket::Result::Success);
+
+	listeningThread.join();
+
+	char recieveBuffer[bufferSize] = { };
+	int bytesRecieved = 0;
+
+	listeningThread = std::thread(&CustomSocket::Socket::Recieve,
+		newConnection,
+		std::ref(recieveBuffer),
+		static_cast<int>(bufferSize),
+		&bytesRecieved);
+
+	EXPECT_EQ(client.send(buffer, bufferSize), CustomSocket::Result::Success);
 
 	listeningThread.join();
 
